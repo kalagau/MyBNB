@@ -1,0 +1,2 @@
+//How to set age range 
+CURDATE() - INTERVAL 18 YEARS
