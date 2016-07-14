@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDataSourceStorage">
+    <option name="dataSources">
+      <list>
+        <State>
+          <option name="id" value="fc553c43-e17c-4781-ac6c-3363c615205b" />
+          <option name="name" value="DDL data source" />
+          <option name="urls">
+            <array>
+              <option value="file://$PROJECT_DIR$/src/ddl_files/address_ddl.sql" />
+              <option value="file://$PROJECT_DIR$/src/ddl_files/calendar_entry_dll.sql" />
+              <option value="file://$PROJECT_DIR$/src/ddl_files/credit_card_ddl.sql" />
+              <option value="file://$PROJECT_DIR$/src/ddl_files/listing_ddl.sql" />
+              <option value="file://$PROJECT_DIR$/src/ddl_files/location_ddl.sql" />
+              <option value="file://$PROJECT_DIR$/src/ddl_files/rental_dll.sql" />
+              <option value="file://$PROJECT_DIR$/src/ddl_files/review_dll.sql" />
+              <option value="file://$PROJECT_DIR$/src/ddl_files/user_dll.sql" />
+            </array>
+          </option>
+        </State>
+      </list>
+    </option>
+  </component>
+</project>
