@@ -52,10 +52,43 @@ delimiter ;
 CREATE TRIGGER calendar_entryUpd BEFORE UPDATE ON calendar_entry
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.price < 0 OR   NEW.date<CURDATE() OR NEW.isAvailable IS FALSE THEN
+IF NEW.price < 0 OR   NEW.date<CURDATE() THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
 END
 |
 delimiter ;
+
+
+//CreditCard
+
+create table credit_card (card_number BIGINT NOT NULL,
+ name VARCHAR(255) NOT NULL, CCV INT NOT NULL, expiry_date DATE NOT NULL,
+CHECK(CCV > 0 AND CCV <= 9999 AND expiry_date >= CURDATE() AND card_number>=100000000000 and card_number <= 9999999999999999999 )) ENGINE INNODB;
+
+>>delimiter |
+CREATE TRIGGER credit_cardIns BEFORE INSERT ON credit_card
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.CCV <= 0 OR NEW.CCV > 9999 OR NEW.expiry_date < CURDATE() OR NEW.card_number<100000000000 and NEW.card_number > 9999999999999999999 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45000' set message_text = msg;
+END IF;
+END 
+|
+delimiter ;
+
+
+>>delimiter |
+CREATE TRIGGER credit_cardUpd BEFORE UPDATE ON credit_card
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.CCV <= 0 OR NEW.CCV > 9999 OR NEW.expiry_date < CURDATE() OR NEW.card_number<100000000000 and NEW.card_number > 9999999999999999999 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45001' set message_text = msg;
+END IF;
+END
+|
+delimiter ;
+
