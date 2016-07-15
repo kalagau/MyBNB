@@ -1,0 +1,61 @@
+//ADDR
+
+create table address (addressId int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+pCode varchar(255) NOT NULL, country VARCHAR(255) NOT NULL, city VARCHAR(255)	 NOT NULL,
+CHECK(CHAR_LENGTH(pCode) >= 2 AND CHAR_LENGTH(pCode) <= 10)) ENGINE INNODB;
+
+>>delimiter |
+CREATE TRIGGER addressIns BEFORE INSERT ON address
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF CHAR_LENGTH(NEW.pCode) <= 2 OR CHAR_LENGTH(NEW.pCode) >= 10 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45000' set message_text = msg;
+END IF;
+END 
+|
+delimiter ;
+
+
+>>delimiter |
+CREATE TRIGGER addressUpd BEFORE UPDATE ON address
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF CHAR_LENGTH(NEW.pCode) <= 2 OR CHAR_LENGTH(NEW.pCode) >= 10 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45001' set message_text = msg;
+END IF;
+END
+|
+delimiter ;
+
+//Calendar
+
+create table calendar_entry (calendar_entry_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+isAvailable BOOLEAN NOT NULL, price DECIMAL NOT NULL, date DATE NOT NULL,
+CHECK(price >= 0 AND `date`>`CURDATE()` )) ENGINE INNODB;
+
+>>delimiter |
+CREATE TRIGGER calendar_entryIns BEFORE INSERT ON calendar_entry
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.price < 0 OR NEW.date<CURDATE()THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45000' set message_text = msg;
+END IF;
+END 
+|
+delimiter ;
+
+
+>>delimiter |
+CREATE TRIGGER calendar_entryUpd BEFORE UPDATE ON calendar_entry
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.price < 0 OR   NEW.date<CURDATE() OR NEW.isAvailable IS FALSE THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45001' set message_text = msg;
+END IF;
+END
+|
+delimiter ;
