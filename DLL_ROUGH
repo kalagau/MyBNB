@@ -1,10 +1,13 @@
 //ADDR
 
-create table address (addressId int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-pCode varchar(255) NOT NULL, country VARCHAR(255) NOT NULL, city VARCHAR(255)	 NOT NULL,
+create table address (
+address_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+pCode varchar(255) NOT NULL, 
+country VARCHAR(255) NOT NULL, 
+city VARCHAR(255) NOT NULL,
 CHECK(CHAR_LENGTH(pCode) >= 2 AND CHAR_LENGTH(pCode) <= 10)) ENGINE INNODB;
 
->>delimiter |
+delimiter |
 CREATE TRIGGER addressIns BEFORE INSERT ON address
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
@@ -17,7 +20,7 @@ END
 delimiter ;
 
 
->>delimiter |
+delimiter |
 CREATE TRIGGER addressUpd BEFORE UPDATE ON address
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
@@ -31,11 +34,16 @@ delimiter ;
 
 //Calendar
 
-create table calendar_entry (calendar_entry_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-isAvailable BOOLEAN NOT NULL, price DECIMAL NOT NULL, date DATE NOT NULL,
-CHECK(price >= 0 AND `date`>`CURDATE()` )) ENGINE INNODB;
+create table calendar_entry (
+listing_id int(50) NOT NULL,
+FOREIGN KEY (listing_id) REFERENCES listing(listing_id),
+isAvailable BOOLEAN NOT NULL,
+price DECIMAL(6,2) NOT NULL,
+date DATE NOT NULL,
+PRIMARY KEY(listing_id,date),
+CHECK(price >= 0 AND date>CURDATE())) ENGINE INNODB;
 
->>delimiter |
+delimiter |
 CREATE TRIGGER calendar_entryIns BEFORE INSERT ON calendar_entry
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
@@ -48,7 +56,7 @@ END
 delimiter ;
 
 
->>delimiter |
+delimiter |
 CREATE TRIGGER calendar_entryUpd BEFORE UPDATE ON calendar_entry
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
@@ -63,15 +71,20 @@ delimiter ;
 
 //CreditCard
 
-create table credit_card (card_number BIGINT NOT NULL,
- name VARCHAR(255) NOT NULL, CCV INT NOT NULL, expiry_date DATE NOT NULL,
-CHECK(CCV > 0 AND CCV <= 9999 AND expiry_date >= CURDATE() AND card_number>=100000000000 and card_number <= 9999999999999999999 )) ENGINE INNODB;
+create table credit_card (
+card_number BIGINT NOT NULL PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+CCV INT NOT NULL,
+expiry_date DATE NOT NULL,
+CHECK(CCV > 0 AND CCV <= 9999),
+check(expiry_date >= CURDATE()), 
+check(card_number>=100000000000 and card_number <= 9999999999999999999 )) ENGINE INNODB;
 
->>delimiter |
+delimiter |
 CREATE TRIGGER credit_cardIns BEFORE INSERT ON credit_card
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.CCV <= 0 OR NEW.CCV > 9999 OR NEW.expiry_date < CURDATE() OR NEW.card_number<100000000000 and NEW.card_number > 9999999999999999999 THEN
+IF NEW.CCV <= 0 OR NEW.CCV > 9999 OR NEW.expiry_date < CURDATE() OR NEW.card_number < 1000000000000 OR NEW.card_number > 9999999999999999999 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -80,15 +93,276 @@ END
 delimiter ;
 
 
->>delimiter |
+delimiter |
 CREATE TRIGGER credit_cardUpd BEFORE UPDATE ON credit_card
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.CCV <= 0 OR NEW.CCV > 9999 OR NEW.expiry_date < CURDATE() OR NEW.card_number<100000000000 and NEW.card_number > 9999999999999999999 THEN
+IF NEW.CCV <= 0 OR NEW.CCV > 9999 OR NEW.expiry_date < CURDATE() OR NEW.card_number < 1000000000000 OR NEW.card_number > 9999999999999999999 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
 END
 |
 delimiter ;
+
+
+//Location
+
+create table location (
+location_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+latitude DECIMAL(10,6) NOT NULL,
+longitude DECIMAL(10,6) NOT NULL,
+CHECK(longitude >= -180 AND longitude <= 180),
+CHECK(latitude >= -90 AND latitude <= 90)) ENGINE INNODB;
+
+delimiter |
+CREATE TRIGGER locationIns BEFORE INSERT ON location
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.longitude < -180 OR NEW.longitude > 180 OR NEW.latitude < -90 OR NEW.latitude > 90 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45000' set message_text = msg;
+END IF;
+END 
+|
+delimiter ;
+
+
+delimiter |
+CREATE TRIGGER locationUpd BEFORE UPDATE ON location
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.longitude < -180 OR NEW.longitude > 180 OR NEW.latitude < -90 OR NEW.latitude > 90 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45001' set message_text = msg;
+END IF;
+END
+|
+delimiter ;
+
+
+
+
+//Listing
+
+create table listing (listing_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+user_id int(50) NOT NULL,
+location_id int(50) NOT NULL,
+address_id int(50) NOT NULL, 
+FOREIGN KEY (location_id) REFERENCES location(location_id),
+FOREIGN KEY (address_id) REFERENCES address(address_id),
+type varchar(255) NOT NULL,
+FOREIGN KEY (user_id) REFERENCES host(user_id),
+num_bedrooms int(50) NOT NULL,
+FOREIGN KEY (SIN) REFERENCES host(SIN),
+Kitchen BOOLEAN NOT NULL, 
+Internet BOOLEAN NOT NULL, 
+TV BOOLEAN NOT NULL,
+Essentials BOOLEAN NOT NULL, 
+Shampoo BOOLEAN NOT NULL, 
+Heating BOOLEAN NOT NULL,
+Air Conditioning BOOLEAN NOT NULL, 
+Washer BOOLEAN NOT NULL, 
+Dryer BOOLEAN NOT NULL,
+Free Parking on Premises BOOLEAN NOT NULL, 
+Wireless Internet BOOLEAN NOT NULL,
+Cable_TV BOOLEAN NOT NULL, 
+Breakfast BOOLEAN NOT NULL, 
+Pets Allowed BOOLEAN NOT NULL,
+Family_Friendly BOOLEAN NOT NULL, 
+Suitable_Events BOOLEAN NOT NULL, 
+Smoking_Allowed BOOLEAN NOT NULL,
+Wheelchair_Accessible BOOLEAN NOT NULL, 
+Elevator_Building BOOLEAN NOT NULL,
+Indoor_Fireplace BOOLEAN NOT NULL, 
+Buzzer BOOLEAN NOT NULL,
+Doorman BOOLEAN NOT NULL, 
+Pool BOOLEAN NOT NULL, 
+Hot_Tub BOOLEAN NOT NULL,
+Gym BOOLEAN NOT NULL, 
+24-Hour_Checkin BOOLEAN NOT NULL, 
+Hangers BOOLEAN NOT NULL,
+Iron BOOLEAN NOT NULL, 
+Hair Dryer BOOLEAN NOT NULL, 
+Laptop_Workspace BOOLEAN NOT NULL,
+CHECK(type IN ('full house','room','apartment')), 
+CHECK(num_bedrooms > 0 AND num_bedrooms < 25 )) ENGINE INNODB;
+
+delimiter |
+CREATE TRIGGER listingIns BEFORE INSERT ON listing
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms < 25 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45000' set message_text = msg;
+END IF;
+END 
+|
+delimiter ;
+
+
+delimiter |
+CREATE TRIGGER listingUpd BEFORE UPDATE ON listing
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms < 25 THEN	
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45001' set message_text = msg;
+END IF;
+END
+|
+delimiter ;
+
+
+
+
+//USer
+
+create table user (
+user_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+address_id int(50) NOT NULL,
+FOREIGN KEY (address_id) REFERENCES address(address_id), 
+occupation varchar(255) NOT NULL,
+name varchar(255) NOT NULL, 
+DOB DATE NOT NULL, 
+SIN INT(9) NOT NULL,
+CHECK(DOB < DATE_SUB(CURDATE(), INTERVAL 18 YEAR)), 
+CHECK(SIN > 100000000 AND SIN <= 999999999)) ENGINE INNODB;
+
+delimiter |
+CREATE TRIGGER userIns BEFORE INSERT ON user
+FOR EACH ROW BEGIN	
+DECLARE msg varchar(255);
+IF NEW.DOB >= DATE_SUB(CURDATE(), INTERVAL 18 YEAR) OR NEW.SIN < 100000000  OR NEW.SIN > 999999999 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45000' set message_text = msg;
+END IF;
+END 
+|
+delimiter ;
+
+
+delimiter |
+CREATE TRIGGER userUpd BEFORE UPDATE ON user
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.DOB >= DATE_SUB(CURDATE(), INTERVAL 18 YEAR) OR NEW.SIN < 100000000  OR NEW.SIN > 999999999 THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45001' set message_text = msg;
+END IF;
+END
+|
+delimiter ;
+
+//HOST
+
+
+create table host (
+user_id int(50) NOT NULL,
+FOREIGN KEY (user_id) REFERENCES user(user_id),
+PRIMARY KEY(user_id),
+isActive BOOLEAN NOT NULL) ENGINE INNODB;
+
+//renter
+
+
+create table  renter(
+user_id int(50) NOT NULL,
+card_number BIGINT NOT NULL,
+FOREIGN KEY (user_id) REFERENCES user(user_id),
+FOREIGN KEY (card_number) REFERENCES credit_card(card_number),
+PRIMARY KEY(user_id),
+isActive BOOLEAN NOT NULL) ENGINE INNODB;
+
+//RENTAL
+
+
+create table rental (
+rental_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+user_id int(50) NOT NULL,
+listing_id int(50) NOT NULL,
+FOREIGN KEY (user_id) REFERENCES renter(user_id),
+FOREIGN KEY (listing_id) REFERENCES listing(listing_id),
+start_date DATE NOT NULL,
+end_date DATE NOT NULL,
+CHECK(start_date  <= end_date)) ENGINE INNODB;
+
+delimiter |
+CREATE TRIGGER rentalIns BEFORE INSERT ON rental
+FOR EACH ROW BEGIN	
+DECLARE msg varchar(255);
+IF NEW.start_date  > NEW.end_date THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45000' set message_text = msg;
+END IF;
+END 
+|
+delimiter ;
+
+
+delimiter |
+CREATE TRIGGER rentalUpd BEFORE UPDATE ON rental
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.start_date  > NEW.end_date THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45001' set message_text = msg;
+END IF;
+END
+|
+delimiter ;
+
+
+//Review
+
+
+
+create table review (
+review_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+host_id int(50),
+listing_id int(50),
+renter_id int(50) NOT NULL,
+FOREIGN KEY (renter_id) REFERENCES renter(user_id),
+FOREIGN KEY (host_id) REFERENCES host(user_id),
+FOREIGN KEY (listing_id) REFERENCES listing(listing_id),
+rating INT(1) NOT NULL, 
+description VARCHAR NOT NULL, 
+type INT(1) NOT NULL,
+CHECK(type >=1 and type<=3),
+CHECK(rating >=1 and rating <=5)) ENGINE INNODB;
+
+
+
+delimiter |
+CREATE TRIGGER reviewIns BEFORE INSERT ON review
+FOR EACH ROW BEGIN	
+DECLARE msg varchar(255);
+IF NEW.start_date  > NEW.end_date THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45000' set message_text = msg;
+END IF;
+END 
+|
+delimiter ;
+
+
+delimiter |
+CREATE TRIGGER reviewUpd BEFORE UPDATE ON review
+FOR EACH ROW BEGIN
+DECLARE msg varchar(255);
+IF NEW.start_date  > NEW.end_date THEN
+SET msg = 'Constraints violated!';
+SIGNAL sqlstate '45001' set message_text = msg;
+END IF;
+END
+|
+delimiter ;
+
+
+
+
+
+
+
+
 
