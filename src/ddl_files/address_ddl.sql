@@ -3,5 +3,7 @@ CREATE TABLE address(
   postal_code VARCHAR(255),
   country VARCHAR(255),
   city VARCHAR(255),
-  PRIMARY KEY(address_id)
+  PRIMARY KEY(address_id),
+  FOREIGN KEY (listing_id) REFERENCES address(listing_id)
+  FOREIGN KEY (listing_id) REFERENCES address(listing_id)
 )
