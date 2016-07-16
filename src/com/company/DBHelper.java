@@ -5,9 +5,13 @@ import java.util.ArrayList;
 /**
  * Created by Daniel on 2016-07-16.
  */
-public class DBHelpers {
+public class DBHelper {
 
     public static String createNewUser(User user){
+        return "abc";
+    }
+
+    public static String deleteUser(String userID){
         return "abc";
     }
 

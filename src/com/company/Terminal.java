@@ -9,6 +9,8 @@ import java.util.Scanner;
 public class Terminal {
 
     Scanner sc;
+    IOHelper helper;
+
 
     private String userID = "";
     private String userName = "";
@@ -16,6 +18,7 @@ public class Terminal {
 
     public Terminal(){
         sc = new Scanner(System.in);
+        helper = new IOHelper(sc);
         startSession();
     }
 
@@ -30,17 +33,9 @@ public class Terminal {
     }
 
     private void tryToLogin(){
-        System.out.println("(r)egister or (l)ogin?");
-        String input = sc.next();
-
-        if (input.equals("r"))
-            register();
-        else if(input.equals("l"))
-            login();
-        else {
-            System.out.println("invalid input!");
-            tryToLogin();
-        }
+        helper.add("Register", this::register);
+        helper.add("Login", this::login);
+        helper.askQuestion();
     }
 
     private void register() {
@@ -77,7 +72,7 @@ public class Terminal {
             user.setCreditCard(new CreditCard(number, expiryDate, CCV, holderName));
         }
 
-        String response = DBHelpers.createNewUser(user);
+        String response = DBHelper.createNewUser(user);
         if (!response.equals("error")){
             userID = response;
             userName = name;
@@ -86,33 +81,26 @@ public class Terminal {
     }
 
     private void login(){
-        int count = 1;
-        ArrayList<String> hosts = DBHelpers.getAllHostsNamesAndIDs();
-        ArrayList<String> renters = DBHelpers.getAllRentersNamesAndIDs();
-
-        System.out.println("Hosts:");
-        for(String host : hosts)
-            System.out.println("(" + count++ + ")" + host);
-
-        System.out.println("Renters:");
-        for(String renter : renters)
-            System.out.println("(" + count++ + ") " + renter);
-
-        int input = -1;
-        try {
-             input = Integer.parseInt(sc.next()) - 1;
-        }catch (NumberFormatException e){}
-
-        String[] parts = null;
-        if(input >= 0 && input < hosts.size())
-            parts = hosts.get(input).split(":");
-        else if(input < renters.size() + hosts.size())
-            parts = renters.get(input - hosts.size()).split(":");
-
-        if(parts != null) {
-            userName = parts[0];
-            userID = parts[1];
-            System.out.println("Welcome back, " + userName);
-        }
+        helper.clear();
+        helper.add("login as host");
+        helper.add("login as renter");
+        String type = helper.askQuestion();
+        displayLoginDataOfType(type);
     }
+
+    private void displayLoginDataOfType(String type){
+        helper.clear();
+        if(type.equals("login as host"))
+            helper.setQuestions(DBHelper.getAllHostsNamesAndIDs());
+        else
+            helper.setQuestions(DBHelper.getAllRentersNamesAndIDs());
+
+        String selected = helper.askQuestion();
+        String[] parts = selected.split(":");
+
+        userName = parts[0];
+        userID = parts[1];
+        System.out.println("Welcome back, " + userName);
+    }
+
 }
