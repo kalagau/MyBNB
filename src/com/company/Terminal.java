@@ -1,5 +1,6 @@
 package com.company;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -13,7 +14,7 @@ public class Terminal {
 
     private String userID = "";
     private String userName = "";
-    private boolean isRenter;
+    private boolean isHost;
 
     public Terminal(){
         sc = new Scanner(System.in);
@@ -28,6 +29,13 @@ public class Terminal {
         while(true){
             helper.add("Logout", this::logout);
             helper.add("Delete current user", this::deleteConfirmation);
+            if(isHost){
+                helper.add("Create new listing", this::createListing);
+                helper.add("Show listing information", this::showListingInfo);
+                helper.add("Delete a listing", this::deleteListing);
+            }else{
+
+            }
             helper.askQuestion();
         }
     }
@@ -89,10 +97,9 @@ public class Terminal {
     }
 
     private void showUsers(String type){
-        if(type.equals("login as host"))
-            helper.setQuestions(DBHelper.getAllHostsNamesAndIDs());
-        else
-            helper.setQuestions(DBHelper.getAllRentersNamesAndIDs());
+        isHost = type.equals("login as host");
+        ArrayList<String> users = isHost ? DBHelper.getAllHostsNamesAndIDs() : DBHelper.getAllRentersNamesAndIDs();
+        helper.setQuestions(users);
 
         String selected = helper.askQuestion();
         String[] parts = selected.split(":");
@@ -118,5 +125,17 @@ public class Terminal {
         userID = "";
         userName = "";
         startSession();
+    }
+
+    private void createListing(){
+
+    }
+
+    private void showListingInfo(){
+
+    }
+
+    private void deleteListing(){
+
     }
 }
