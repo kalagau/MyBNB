@@ -215,7 +215,7 @@ delimiter |
 CREATE TRIGGER listingIns BEFORE INSERT ON listing
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms < 25 THEN
+IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms > 25 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -228,7 +228,7 @@ delimiter |
 CREATE TRIGGER listingUpd BEFORE UPDATE ON listing
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms < 25 THEN	
+IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms >= 25 THEN	
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
@@ -336,7 +336,7 @@ delimiter |
 CREATE TRIGGER reviewIns BEFORE INSERT ON review
 FOR EACH ROW BEGIN	
 DECLARE msg varchar(255);
-IF NEW.rating < 1  OR  NEW.rating > 5 THEN
+IF NEW.rating < 1  OR  NEW.rating > 5 OR NEW.type < 1  OR  NEW.type > 3 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -349,7 +349,7 @@ delimiter |
 CREATE TRIGGER reviewUpd BEFORE UPDATE ON review
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.rating < 1  OR  NEW.rating > 5 THEN
+IF NEW.rating < 1  OR  NEW.rating > 5 OR NEW.type < 1  OR  NEW.type > 3 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
