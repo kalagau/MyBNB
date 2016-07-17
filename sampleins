@@ -1,0 +1,19 @@
+//C43 Queries
+//Address
+INSERT INTO address(pCode,country,city) VALUES('55344','mexico','toronto');
+INSERT INTO credit_card(card_number,name,ccv,expiry_date) VALUES(1234567891012,'Bob Marley',123,'2016-11-11');
+INSERT INTO location(latitude, longitude) VALUES(41.45455,22.234344);
+INSERT INTO user(address_id,occupation,name,DOB,SIN) VALUES(1,'Soft Engineer','Bob Marley','1994-01-01',123456789);
+INSERT INTO renter(user_id,card_number,isActive) VALUES(2,1234567891011,TRUE);
+INSERT INTO host(user_id,isActive) VALUES(2,TRUE);
+INSERT INTO listing(
+user_id,location_id, address_id, type, num_bedrooms, Kitchen , Internet , TV ,
+Essentials , Shampoo , Heating ,Air_Conditioning , Washer ,Dryer ,Free_Parking , Wireless_Internet ,
+Cable_TV ,Breakfast, Pets_Allowed ,Family_Friendly , Suitable_Events , Smoking_Allowed ,Wheelchair_Accessible ,
+Elevator_Building ,Indoor_Fireplace , Buzzer ,
+Doorman , Pool , Hot_Tub ,Gym , 24Hour_Checkin , Hangers ,Iron , Hair_Dryer , Laptop_Workspace)
+VALUES(2,2,2,'apartment',3, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
+TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
+INSERT INTO calendar_entry(listing_id,isAvailable,price,date) VALUES(2,TRUE,75.99,CURDATE());
+INSERT INTO rental(listing_id,user_id,start_date,end_date) VALUES(2,2,'2015-01-01','2015-01-01');
+INSERT INTO review(listing_id,renter_id, rating,description, type) VALUES(2,3,3,'Meh',4);
