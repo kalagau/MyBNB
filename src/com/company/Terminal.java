@@ -1,6 +1,5 @@
 package com.company;
 
-import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -26,10 +25,11 @@ public class Terminal {
         if(userID.isEmpty())
             tryToLogin();
 
-        String input = "";
-        do {
-
-        } while(!input.equals("exit"));
+        while(true){
+            helper.add("Logout", this::logout);
+            helper.add("Delete current user", this::deleteConfirmation);
+            helper.askQuestion();
+        }
     }
 
     private void tryToLogin(){
@@ -77,19 +77,18 @@ public class Terminal {
             userID = response;
             userName = name;
             System.out.println("Welcome, " + userName);
+            startSession();
         }
     }
 
     private void login(){
-        helper.clear();
         helper.add("login as host");
         helper.add("login as renter");
         String type = helper.askQuestion();
-        displayLoginDataOfType(type);
+        showUsers(type);
     }
 
-    private void displayLoginDataOfType(String type){
-        helper.clear();
+    private void showUsers(String type){
         if(type.equals("login as host"))
             helper.setQuestions(DBHelper.getAllHostsNamesAndIDs());
         else
@@ -103,4 +102,21 @@ public class Terminal {
         System.out.println("Welcome back, " + userName);
     }
 
+    private void deleteConfirmation(){
+        helper.add("Permanently delete " + userName + "'s account", this::delete);
+        helper.add("No, I've changed my mind!", ()->{});
+        helper.askQuestion();
+    }
+
+    private void delete(){
+        DBHelper.deleteUser(userID);
+        logout();
+    }
+
+    private void logout(){
+        System.out.println("Goodbye, " + userName);
+        userID = "";
+        userName = "";
+        startSession();
+    }
 }

@@ -19,26 +19,25 @@ public class IOHelper {
     }
 
     public String askQuestion(){
-        String selected = "";
         for(int i = 0; i< questions.size(); i++)
-            System.out.println("(" + i + ") " + questions.get(i));
+            System.out.println("(" + (i+1) + ") " + questions.get(i));
 
         int selectedNumber = getInputedInt();
         if(inputIsValid(selectedNumber)){
-            selected = questions.get(selectedNumber);
-            if(!actions.isEmpty())
-                actions.get(selectedNumber).run();
-        }else{
-            return askQuestion();
+            String selected = questions.get(selectedNumber);
+            Runnable action = actions.isEmpty() ? null : actions.get(selectedNumber);
+            this.clear();
+            if(action != null)
+                action.run();
+            return selected;
         }
-
-        return selected;
+        return askQuestion();
     }
 
     private int getInputedInt(){
         int selectedNumber = -1;
 
-        try { selectedNumber = Integer.parseInt(sc.next());
+        try { selectedNumber = Integer.parseInt(sc.next()) - 1;
         }catch (NumberFormatException e){
             askQuestion();
         }
