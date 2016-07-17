@@ -170,44 +170,45 @@ isActive BOOLEAN NOT NULL) ENGINE INNODB;
 //Listing
 
 create table listing (listing_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-user_id int(50) NOT NULL,
-location_id int(50) NOT NULL,
-address_id int(50) NOT NULL, 
-FOREIGN KEY (location_id) REFERENCES location(location_id),
-FOREIGN KEY (address_id) REFERENCES address(address_id),
-type varchar(255) NOT NULL,
-FOREIGN KEY (user_id) REFERENCES host(user_id),
-num_bedrooms int(50) NOT NULL,
-Kitchen BOOLEAN NOT NULL, 
-Internet BOOLEAN NOT NULL, 
-TV BOOLEAN NOT NULL,
-Essentials BOOLEAN NOT NULL, 
-Shampoo BOOLEAN NOT NULL, 
-Heating BOOLEAN NOT NULL,
-Air_Conditioning BOOLEAN NOT NULL, 
-Washer BOOLEAN NOT NULL, 
-Dryer BOOLEAN NOT NULL,
-Free_Parking BOOLEAN NOT NULL, 
-Wireless_Internet BOOLEAN NOT NULL,
-Cable_TV BOOLEAN NOT NULL, 
-Breakfast BOOLEAN NOT NULL, 
-Pets_Allowed BOOLEAN NOT NULL,
-Family_Friendly BOOLEAN NOT NULL, 
-Suitable_Events BOOLEAN NOT NULL, 
-Smoking_Allowed BOOLEAN NOT NULL,
-Wheelchair_Accessible BOOLEAN NOT NULL, 
-Elevator_Building BOOLEAN NOT NULL,
-Indoor_Fireplace BOOLEAN NOT NULL, 
-Buzzer BOOLEAN NOT NULL,
-Doorman BOOLEAN NOT NULL, 
-Pool BOOLEAN NOT NULL, 
-Hot_Tub BOOLEAN NOT NULL,
-Gym BOOLEAN NOT NULL, 
-24Hour_Checkin BOOLEAN NOT NULL, 
-Hangers BOOLEAN NOT NULL,
-Iron BOOLEAN NOT NULL, 
-Hair_Dryer BOOLEAN NOT NULL, 
-Laptop_Workspace BOOLEAN NOT NULL,
+isActive BOOLEAN NOT NULL DEFAULT '1',
+user_id int(50) NOT NULL ,
+location_id int(50) NOT NULL ,
+address_id int(50) NOT NULL ,
+FOREIGN KEY (location_id) REFERENCES location(location_id) ,
+FOREIGN KEY (address_id) REFERENCES address(address_id) ,
+type varchar(255) NOT NULL DEFAULT 0,
+FOREIGN KEY (user_id) REFERENCES host(user_id) ,
+num_bedrooms int(1) NOT NULL ,
+Kitchen BOOLEAN NOT NULL DEFAULT 0,
+Internet BOOLEAN NOT NULL DEFAULT 0, 
+TV BOOLEAN NOT NULL DEFAULT 0,
+Essentials BOOLEAN NOT NULL DEFAULT 0,
+Shampoo BOOLEAN NOT NULL DEFAULT 0,
+Heating BOOLEAN NOT NULL DEFAULT 0,
+Air_Conditioning BOOLEAN NOT NULL DEFAULT 0,
+Washer BOOLEAN NOT NULL DEFAULT 0,
+Dryer BOOLEAN NOT NULL DEFAULT 0,
+Free_Parking BOOLEAN NOT NULL DEFAULT 0,
+Wireless_Internet BOOLEAN NOT NULL DEFAULT 0,
+Cable_TV BOOLEAN NOT NULL DEFAULT 0,
+Breakfast BOOLEAN NOT NULL DEFAULT 0,
+Pets_Allowed BOOLEAN NOT NULL DEFAULT 0,
+Family_Friendly BOOLEAN NOT NULL DEFAULT 0,
+Suitable_Events BOOLEAN NOT NULL DEFAULT 0,
+Smoking_Allowed BOOLEAN NOT NULL DEFAULT 0,
+Wheelchair_Accessible BOOLEAN NOT NULL DEFAULT 0,
+Elevator_Building BOOLEAN NOT NULL DEFAULT 0,
+Indoor_Fireplace BOOLEAN NOT NULL DEFAULT 0,
+Buzzer BOOLEAN NOT NULL DEFAULT 0,
+Doorman BOOLEAN NOT NULL DEFAULT 0,
+Pool BOOLEAN NOT NULL DEFAULT 0,
+Hot_Tub BOOLEAN NOT NULL DEFAULT 0,
+Gym BOOLEAN NOT NULL DEFAULT 0,
+24Hour_Checkin BOOLEAN NOT NULL DEFAULT 0, 
+Hangers BOOLEAN NOT NULL DEFAULT 0,
+Iron BOOLEAN NOT NULL DEFAULT 0,
+Hair_Dryer BOOLEAN NOT NULL DEFAULT 0, 
+Laptop_Workspace BOOLEAN NOT NULL DEFAULT 0,
 CHECK(type IN ('full house','room','apartment')), 
 CHECK(num_bedrooms > 0 AND num_bedrooms < 25 )) ENGINE INNODB;
 
@@ -242,7 +243,7 @@ delimiter ;
 create table calendar_entry (
 listing_id int(50) NOT NULL,
 FOREIGN KEY (listing_id) REFERENCES listing(listing_id),
-isAvailable BOOLEAN NOT NULL,
+isAvailable BOOLEAN NOT NULL DEFAULT '1',
 price DECIMAL(6,2) NOT NULL,
 date DATE NOT NULL,
 PRIMARY KEY(listing_id,date),
@@ -279,18 +280,22 @@ delimiter ;
 create table rental (
 rental_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 user_id int(50) NOT NULL,
+cancelled_By int(1) NOT NULL DEFAULT 0,
 listing_id int(50) NOT NULL,
 FOREIGN KEY (user_id) REFERENCES renter(user_id),
 FOREIGN KEY (listing_id) REFERENCES listing(listing_id),
 start_date DATE NOT NULL,
 end_date DATE NOT NULL,
-CHECK(start_date  <= end_date)) ENGINE INNODB;
+CHECK(start_date  <= end_date),
+CHECK(cancelled_By>= 0 and  cancelled_By <=2),
+
+) ENGINE INNODB;
 
 delimiter |
 CREATE TRIGGER rentalIns BEFORE INSERT ON rental
 FOR EACH ROW BEGIN	
 DECLARE msg varchar(255);
-IF NEW.start_date  > NEW.end_date THEN
+IF NEW.start_date  > NEW.end_date OR cancelled_By< 0 OR  cancelled_By > 2 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -303,7 +308,7 @@ delimiter |
 CREATE TRIGGER rentalUpd BEFORE UPDATE ON rental
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.start_date  > NEW.end_date THEN
+IF NEW.start_date  > NEW.end_date OR cancelled_By< 0 OR  cancelled_By > 2 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
