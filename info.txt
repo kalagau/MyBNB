@@ -1,2 +1,6 @@
 //How to set age range 
 CURDATE() - INTERVAL 18 YEARS
+
+
+
+CreditCard -number is Date.!
