@@ -11,6 +11,14 @@ public class DBHelper {
     private static final String CONNECTION = "jdbc:mysql://127.0.0.1/mydb";
     private static boolean active = false;
     private static Connection conn;
+    private static string dateSQL = "select * from \n" +
+            "(select adddate('1970-01-01',t4.i*10000 + t3.i*1000 + t2.i*100 + t1.i*10 + t0.i) selected_date from\n" +
+            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,\n" +
+            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t1,\n" +
+            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t2,\n" +
+            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t3,\n" +
+            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t4) v\n" +
+            "where selected_date between ? and ?";
 
     public static void createConnection() {
         //Register JDBC driver
@@ -261,6 +269,24 @@ public class DBHelper {
         ArrayList<String> list = new ArrayList<String>();
         createConnection();
         try {
+            PreparedStatement renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=renter.user_id;");
+            ResultSet rs = renterData.executeQuery();
+            while (rs.next())
+                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+
+            rs.close();
+            renterData.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return list;
+    }
+
+    public static ArrayList<String> gethostListings(string userId){
+        ArrayList<String> list = new ArrayList<String>();
+        createConnection();
+        try {
             PreparedStatement renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=host.user_id;");
             ResultSet rs = renterData.executeQuery();
             while (rs.next())
@@ -274,4 +300,170 @@ public class DBHelper {
         closeConnection();
         return list;
     }
+
+
+
+    public static ArrayList<String> getrenterRentals(string userId){
+        ArrayList<String> list = new ArrayList<String>();
+        createConnection();
+        try {
+            PreparedStatement renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=host.user_id;");
+            ResultSet rs = renterData.executeQuery();
+            while (rs.next())
+                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+
+            rs.close();
+            hostData.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return list;
+    }
+
+    public static boolean removeListing(string userId,string listing_id){
+        ArrayList<String> list = new ArrayList<String>();
+        createConnection();
+        try {
+            PreparedStatement renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=host.user_id;");
+            ResultSet rs = renterData.executeQuery();
+            while (rs.next())
+                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+
+            rs.close();
+            hostData.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return list;
+    }
+
+
+
+    public static boolean createListing(string userId){
+        ArrayList<String> list = new ArrayList<String>();
+        createConnection();
+        try {
+            PreparedStatement renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=host.user_id;");
+            ResultSet rs = renterData.executeQuery();
+            while (rs.next())
+                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+
+            rs.close();
+            hostData.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return list;
+    }
+//REPORT FUNCTIONS VERY VOLATILE- NEED to be verified on how they are supposed to work????
+
+
+
+    public static int searchRentalsByDate(java.sql.Date startDate, java.sql.Date endDate, String city){
+        int result = -1;
+        createConnection();
+        try {
+            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM rental INNER JOIN listing ON rental.listing_id=listing.listing_id INNER JOIN address ON listing.address_id=address.address_id where   address.city=? and rental.start_date >= ? and rental.start_date <=?;");
+            numListings.setString(1,city);
+            numListings.setDate(2,startDate);
+            numListings.setDate(3,endDate);
+            ResultSet rs = numListings.executeQuery();
+            if (rs.next())
+                result = rs.getInt(1);
+
+            rs.close();
+            numListings.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return result;
+    }
+
+    public static int searchRentalsByDate(java.sql.Date startDate, java.sql.Date endDate, String city, String postal_code){
+        int result = -1;
+        createConnection();
+        try {
+            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM rental INNER JOIN listing ON rental.listing_id=listing.listing_id INNER JOIN address ON listing.address_id=address.address_id where  address.postal_code=? address.city=? and rental.start_date >= ? and rental.start_date <=?;");
+            numListings.setString(1,postal_code);
+            numListings.setString(2,city);
+            numListings.setDate(3,startDate);
+            numListings.setDate(4,endDate);
+
+            ResultSet rs = numListings.executeQuery();
+            if (rs.next())
+                result = rs.getInt(1);
+
+            rs.close();
+            numListings.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return result;
+    }
+    public static int searchListings(String country){
+        int result = -1;
+        createConnection();
+        try {
+            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=? ");
+            numListings.setString(1,country);
+            ResultSet rs = numListings.executeQuery();
+            if (rs.next())
+                result = rs.getInt(1);
+
+            rs.close();
+            numListings.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return result;
+    }
+
+    public static int searchListings(String country, String city){
+        int result = -1;
+        createConnection();
+        try {
+            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=? and address.city=? ");
+            numListings.setString(1,country);
+            numListings.setString(2,city);
+            ResultSet rs = numListings.executeQuery();
+            if (rs.next())
+                result = rs.getInt(1);
+
+            rs.close();
+            numListings.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return result;
+    }
+    public static int searchListings(String country,String city, String postal_code){
+        int result = -1;
+        createConnection();
+        try {
+            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=?and address.city=? and address.postal_code=? ");
+            numListings.setString(1,country);
+            numListings.setString(2,city);
+            numListings.setString(3,postal_code);
+            ResultSet rs = numListings.executeQuery();
+            if (rs.next())
+                result = rs.getInt(1);
+
+            rs.close();
+            numListings.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return result;
+    }
+
+
+
 }
