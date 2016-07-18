@@ -18,7 +18,7 @@ public class IOHelper {
         actions = new ArrayList<>();
     }
 
-    public String askQuestion(){
+    public String askQuestions(){
         for(int i = 0; i< questions.size(); i++)
             System.out.println("(" + (i+1) + ") " + questions.get(i));
 
@@ -31,7 +31,7 @@ public class IOHelper {
                 action.run();
             return selected;
         }
-        return askQuestion();
+        return askQuestions();
     }
 
     private int getInputedInt(){
@@ -39,7 +39,7 @@ public class IOHelper {
 
         try { selectedNumber = Integer.parseInt(sc.next()) - 1;
         }catch (NumberFormatException e){
-            askQuestion();
+            askQuestions();
         }
 
         return selectedNumber;

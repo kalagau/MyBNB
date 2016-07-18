@@ -1,6 +1,7 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -10,7 +11,7 @@ public class Terminal {
 
     Scanner sc;
     IOHelper helper;
-
+    InfoHelper asker;
 
     private String userID = "";
     private String userName = "";
@@ -19,6 +20,7 @@ public class Terminal {
     public Terminal(){
         sc = new Scanner(System.in);
         helper = new IOHelper(sc);
+        asker = new InfoHelper(sc);
         startSession();
     }
 
@@ -36,54 +38,36 @@ public class Terminal {
             }else{
 
             }
-            helper.askQuestion();
+            helper.askQuestions();
         }
     }
 
     private void tryToLogin(){
         helper.add("Register", this::register);
         helper.add("Login", this::login);
-        helper.askQuestion();
+        helper.askQuestions();
     }
 
     private void register() {
-        System.out.println("Name:");
-        String name = sc.next();
+        asker.add(new Info("name", "Name:", Info.DataType.STRING));
+        asker.add(new Info("occupation", "Occupation:", Info.DataType.STRING));
+        asker.add(new Info("DOB", "Date of Birth:", Info.DataType.DATE));
+        asker.add(new Info("SIN", "Social Insurance Number:", Info.DataType.STRING));
+        asker.add(new Info("isRenter", "Will you be a host? (y/n):", Info.DataType.BOOLEAN));
+        User user = new User(asker.askQuestions());
 
-        System.out.println("Occupation:");
-        String occupation = sc.next();
-
-        System.out.println("Date of Birth:");
-        String DOB = sc.next();
-
-        System.out.println("SIN:");
-        String SIN = sc.next();
-
-        System.out.println("Will you be a host? (y/n):");
-        boolean isRenter = !sc.next().equals("y");
-
-        User user = new User(name, occupation, DOB, SIN, isRenter);
-
-        if (isRenter) {
-            System.out.println("Credit Card Number:");
-            String number = sc.next();
-
-            System.out.println("Credit Card Expiry Date:");
-            String expiryDate = sc.next();
-
-            System.out.println("Credit Card CCV:");
-            String CCV = sc.next();
-
-            System.out.println("Credit Card Holder Name:");
-            String holderName = sc.next();
-
-            user.setCreditCard(new CreditCard(number, expiryDate, CCV, holderName));
+        if (user.isRenter()) {
+            asker.add(new Info("number", "Credit Card Number:", Info.DataType.STRING));
+            asker.add(new Info("expiryDate", "Credit Card Expiry Date:", Info.DataType.STRING));
+            asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING));
+            asker.add(new Info("holderName", "Credit Card Holder Name:", Info.DataType.STRING));
+            user.setCreditCard(new CreditCard(asker.askQuestions()));
         }
 
         String response = DBHelper.createNewUser(user);
         if (!response.equals("error")){
             userID = response;
-            userName = name;
+            userName = user.getName();
             System.out.println("Welcome, " + userName);
             startSession();
         }
@@ -92,7 +76,7 @@ public class Terminal {
     private void login(){
         helper.add("login as host");
         helper.add("login as renter");
-        String type = helper.askQuestion();
+        String type = helper.askQuestions();
         showUsers(type);
     }
 
@@ -101,7 +85,7 @@ public class Terminal {
         ArrayList<String> users = isHost ? DBHelper.getAllHostsNamesAndIDs() : DBHelper.getAllRentersNamesAndIDs();
         helper.setQuestions(users);
 
-        String selected = helper.askQuestion();
+        String selected = helper.askQuestions();
         String[] parts = selected.split(":");
 
         userName = parts[0];
@@ -112,7 +96,7 @@ public class Terminal {
     private void deleteConfirmation(){
         helper.add("Permanently delete " + userName + "'s account", this::delete);
         helper.add("No, I've changed my mind!", ()->{});
-        helper.askQuestion();
+        helper.askQuestions();
     }
 
     private void delete(){

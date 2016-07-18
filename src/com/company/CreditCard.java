@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.Map;
+
 /**
  * Created by Daniel on 2016-07-16.
  */
@@ -12,6 +14,13 @@ public class CreditCard {
         this.expiryDate = expiryDate;
         this.CCV = CCV;
         this.holderName = holderName;
+    }
+
+    public CreditCard(Map creditCardMap) {
+        this.number = (String)creditCardMap.get("number");
+        this.expiryDate = (String)creditCardMap.get("expiryDate");
+        this.CCV = (String)creditCardMap.get("CCV");
+        this.holderName = (String)creditCardMap.get("holderName");
     }
 
     public String getNumber() {

@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.Map;
+
 /**
  * Created by Daniel on 2016-07-16.
  */
@@ -15,6 +17,14 @@ public class User {
         this.DOB = DOB;
         this.SIN = SIN;
         this.isRenter = isRenter;
+    }
+
+    public User(Map userMap) {
+        this.name = (String)userMap.get("name");
+        this.occupation = (String)userMap.get("occupation");
+        this.DOB = (String)userMap.get("DOB");
+        this.SIN = (String)userMap.get("SIN");
+        this.isRenter = (Boolean) userMap.get("isRenter");
     }
 
     public String getName() {
