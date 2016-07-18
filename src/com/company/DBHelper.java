@@ -237,21 +237,41 @@ public class DBHelper {
         return String.valueOf(cleanDelete);
     }
 
-    
+
 
     public static ArrayList<String> getAllHostsNamesAndIDs(){
         ArrayList<String> list = new ArrayList<String>();
-        list.add("bob:001");
-        list.add("fred:005");
-        list.add("sam:003");
+        createConnection();
+        try {
+            PreparedStatement hostData = conn.prepareStatement("SELECT host.user_id,user.name FROM host INNER JOIN user ON user.user_id=host.user_id;");
+            ResultSet rs = hostData.executeQuery();
+            while (rs.next())
+                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+
+            rs.close();
+            hostData.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
         return list;
     }
 
     public static ArrayList<String> getAllRentersNamesAndIDs(){
         ArrayList<String> list = new ArrayList<String>();
-        list.add("sally:002");
-        list.add("doug:004");
-        list.add("marc:006");
+        createConnection();
+        try {
+            PreparedStatement renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=host.user_id;");
+            ResultSet rs = renterData.executeQuery();
+            while (rs.next())
+                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+
+            rs.close();
+            hostData.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
         return list;
     }
 }
