@@ -22,12 +22,14 @@ public class InfoHelper {
 
     public InfoHelper(Scanner sc) {
         this.sc = sc;
+        this.questions = new ArrayList<>();
         this.answers = new HashMap();
     }
 
     public Map askQuestions(){
         questions.forEach((info)->askQuestion(info));
-        Map answersCopy = answers;
+        Map answersCopy = new HashMap();
+        answersCopy.putAll(answers);
         this.clear();
         return answersCopy;
     }
@@ -39,7 +41,7 @@ public class InfoHelper {
             case BOOLEAN:
                 int boolVal = getBoolean(input);
                 if(boolVal == -1 || !(Boolean) info.isValid.apply(boolVal)) askQuestion(info);
-                else answers.put(info.key, boolVal);
+                else answers.put(info.key, boolVal == 1);
                 break;
             case INTEGER:
                 int intVal = getInt(input);
@@ -55,6 +57,7 @@ public class InfoHelper {
                 Date dateVal = getDate(input);
                 if(dateVal == null || !(Boolean) info.isValid.apply(dateVal)) askQuestion(info);
                 else answers.put(info.key, dateVal);
+                break;
             case STRING:
                 if(!(Boolean) info.isValid.apply(input)) askQuestion(info);
                 answers.put(info.key, input);
@@ -96,11 +99,9 @@ public class InfoHelper {
     }
 
     private Date getDate(String input){
-        String startDateString = "06/27/2007";
-        DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
         try {
-            return (Date) df.parse(startDateString);
-        } catch (ParseException e) {
+            return Date.valueOf(input);
+        } catch(IllegalArgumentException e){
             return null;
         }
     }

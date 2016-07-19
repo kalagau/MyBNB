@@ -52,9 +52,9 @@ public class Terminal {
     private void register() {
         asker.add(new Info("name", "Name:", Info.DataType.STRING));
         asker.add(new Info("occupation", "Occupation:", Info.DataType.STRING));
-        asker.add(new Info("DOB", "Date of Birth:", Info.DataType.DATE, ValidatorKeys.IS_ADULT));
+        asker.add(new Info("DOB", "Date of Birth (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.IS_ADULT));
         asker.add(new Info("SIN", "Social Insurance Number:", Info.DataType.STRING, ValidatorKeys.ALL_NUMBERS));
-        asker.add(new Info("isRenter", "Will you be a host? (y/n):", Info.DataType.BOOLEAN));
+        asker.add(new Info("isRenter", "Will you be a renter? (y/n):", Info.DataType.BOOLEAN));
         User user = new User(asker.askQuestions());
 
         if (user.isRenter()) {

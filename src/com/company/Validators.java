@@ -35,7 +35,8 @@ public class Validators {
         cal.setTime(date);
 
         int offset = cal.get(Calendar.DAY_OF_YEAR) > today.get(Calendar.DAY_OF_YEAR) ? 0 : 1;
-        return today.get(Calendar.DAY_OF_YEAR) - cal.get(Calendar.DAY_OF_YEAR) + offset > 18;
+        int age = today.get(Calendar.YEAR) - cal.get(Calendar.YEAR) + offset;
+        return age >= 18;
     }
 
     public static boolean allNumbers(String str){

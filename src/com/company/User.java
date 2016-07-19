@@ -1,5 +1,6 @@
 package com.company;
 
+import java.sql.Date;
 import java.util.Map;
 
 /**
@@ -7,11 +8,12 @@ import java.util.Map;
  */
 public class User {
 
-    private String name, occupation, DOB, SIN;
+    private String name, occupation, SIN;
     private boolean isRenter;
     private CreditCard creditCard;
+    public Date DOB;
 
-    public User(String name, String occupation, String DOB, String SIN, boolean isRenter) {
+    public User(String name, String occupation, Date DOB, String SIN, boolean isRenter) {
         this.name = name;
         this.occupation = occupation;
         this.DOB = DOB;
@@ -22,7 +24,7 @@ public class User {
     public User(Map userMap) {
         this.name = (String)userMap.get("name");
         this.occupation = (String)userMap.get("occupation");
-        this.DOB = (String)userMap.get("DOB");
+        this.DOB = (Date)userMap.get("DOB");
         this.SIN = (String)userMap.get("SIN");
         this.isRenter = (Boolean) userMap.get("isRenter");
     }
@@ -35,7 +37,7 @@ public class User {
         return occupation;
     }
 
-    public String getDOB() {
+    public Date getDOB() {
         return DOB;
     }
 
