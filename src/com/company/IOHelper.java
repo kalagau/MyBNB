@@ -22,7 +22,7 @@ public class IOHelper {
         for(int i = 0; i< questions.size(); i++)
             System.out.println("(" + (i+1) + ") " + questions.get(i));
 
-        int selectedNumber = getInputedInt();
+        int selectedNumber = getInputedInt(sc.nextLine());
         if(inputIsValid(selectedNumber)){
             String selected = questions.get(selectedNumber);
             Runnable action = actions.isEmpty() ? null : actions.get(selectedNumber);
@@ -34,15 +34,29 @@ public class IOHelper {
         return askQuestions();
     }
 
-    private int getInputedInt(){
-        int selectedNumber = -1;
+    public ArrayList<String> askQuestionsWithMultipleInput(){
+        ArrayList<String> selections = new ArrayList<>();
+        for(int i = 0; i< questions.size(); i++)
+            System.out.println("(" + (i+1) + ") " + questions.get(i));
 
-        try { selectedNumber = Integer.parseInt(sc.next()) - 1;
-        }catch (NumberFormatException e){
-            askQuestions();
+        String[] inputs = sc.nextLine().split(" *, *");
+        for(String input : inputs){
+            int selected = getInputedInt(input);
+            if(inputIsValid(selected))
+                selections.add(questions.get(selected));
+            else
+                return askQuestionsWithMultipleInput();
         }
+        this.clear();
+        return selections;
+    }
 
-        return selectedNumber;
+    private int getInputedInt(String input){
+        try {
+            return Integer.parseInt(input) - 1;
+        }catch (NumberFormatException e){
+            return -1;
+        }
     }
 
     public void add(String question, Runnable action){

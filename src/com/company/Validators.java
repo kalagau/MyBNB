@@ -12,21 +12,18 @@ import java.util.function.Function;
 public class Validators {
 
     public static Map<ValidatorKeys, Function> Validation;
-    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS}
+    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE}
 
     public static void initMap(){
         Validation = new HashMap<>();
         Validation.put(ValidatorKeys.NONE, (o)-> Validators.noValidation(o));
         Validation.put(ValidatorKeys.IS_ADULT, (d)-> Validators.isAdult((Date)d));
         Validation.put(ValidatorKeys.ALL_NUMBERS, (s)-> Validators.allNumbers((String)s));
+        Validation.put(ValidatorKeys.POSTAL_CODE, (s)-> Validators.isPostalCode((String)s));
     }
 
     public static boolean noValidation(Object o){
         return true;
-    }
-
-    public static boolean matches(String str, String regex){
-        return str.matches(regex);
     }
 
     public static boolean isAdult(Date date){
@@ -41,5 +38,9 @@ public class Validators {
 
     public static boolean allNumbers(String str){
         return str.matches("\\d*");
+    }
+
+    public static boolean isPostalCode(String str){
+        return str.matches("(\\p{Alpha}\\d){3}");
     }
 }

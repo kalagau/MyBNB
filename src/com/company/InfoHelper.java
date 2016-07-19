@@ -36,7 +36,7 @@ public class InfoHelper {
 
     private void askQuestion(Info info){
         System.out.println(info.text);
-        String input = sc.next();
+        String input = sc.nextLine();
         switch (info.type){
             case BOOLEAN:
                 int boolVal = getBoolean(input);

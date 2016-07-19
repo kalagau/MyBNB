@@ -1,9 +1,12 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import com.company.Validators.ValidatorKeys;
+import com.company.Info.DataType;
 
 /**
  * Created by Daniel on 2016-07-16.
@@ -50,18 +53,18 @@ public class Terminal {
     }
 
     private void register() {
-        asker.add(new Info("name", "Name:", Info.DataType.STRING));
-        asker.add(new Info("occupation", "Occupation:", Info.DataType.STRING));
-        asker.add(new Info("DOB", "Date of Birth (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.IS_ADULT));
-        asker.add(new Info("SIN", "Social Insurance Number:", Info.DataType.STRING, ValidatorKeys.ALL_NUMBERS));
-        asker.add(new Info("isRenter", "Will you be a renter? (y/n):", Info.DataType.BOOLEAN));
+        asker.add(new Info("name", "Name:", DataType.STRING));
+        asker.add(new Info("occupation", "Occupation:", DataType.STRING));
+        asker.add(new Info("DOB", "Date of Birth (yyyy-mm-dd):", DataType.DATE, ValidatorKeys.IS_ADULT));
+        asker.add(new Info("SIN", "Social Insurance Number:", DataType.STRING, ValidatorKeys.ALL_NUMBERS));
+        asker.add(new Info("isRenter", "Will you be a renter? (y/n):", DataType.BOOLEAN));
         User user = new User(asker.askQuestions());
 
         if (user.isRenter()) {
-            asker.add(new Info("number", "Credit Card Number:", Info.DataType.STRING, ValidatorKeys.ALL_NUMBERS));
-            asker.add(new Info("expiryDate", "Credit Card Expiry Date:", Info.DataType.STRING));
-            asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING, ValidatorKeys.ALL_NUMBERS));
-            asker.add(new Info("holderName", "Credit Card Holder Name:", Info.DataType.STRING));
+            asker.add(new Info("number", "Credit Card Number:", DataType.STRING, ValidatorKeys.ALL_NUMBERS));
+            asker.add(new Info("expiryDate", "Credit Card Expiry Date:", DataType.STRING));
+            asker.add(new Info("CCV", "Credit Card CCV:", DataType.STRING, ValidatorKeys.ALL_NUMBERS));
+            asker.add(new Info("holderName", "Credit Card Holder Name:", DataType.STRING));
             user.setCreditCard(new CreditCard(asker.askQuestions()));
         }
 
@@ -113,7 +116,19 @@ public class Terminal {
     }
 
     private void createListing(){
+        asker.add(new Info("country", "Country:", DataType.STRING));
+        asker.add(new Info("city", "City:", DataType.STRING));
+        asker.add(new Info("postalCode", "Postal Code:", DataType.STRING, ValidatorKeys.POSTAL_CODE));
+        asker.add(new Info("longitude", "Longitude:", DataType.DOUBLE));
+        asker.add(new Info("latitude", "Latitude:", DataType.DOUBLE));
+        Listing listing = new Listing(asker.askQuestions());
 
+        helper.add("windows");
+        helper.add("kitchen");
+        helper.add("air conditioning");
+        helper.add("free food");
+        helper.add("pizza");
+        listing.setCharacteristics(helper.askQuestionsWithMultipleInput());
     }
 
     private void showListingInfo(){
