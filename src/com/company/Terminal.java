@@ -33,15 +33,16 @@ public class Terminal {
             tryToLogin();
 
         while(true){
-            helper.add("Logout", this::logout);
-            helper.add("Delete current user", this::deleteConfirmation);
             if(isHost){
                 helper.add("Create new listing", this::createListing);
                 helper.add("Show listing information", this::showListingInfo);
                 helper.add("Delete a listing", this::deleteListing);
             }else{
-
+                helper.add("Book a listing", this::bookListing);
             }
+            helper.add("Create a Review", this::createReview);
+            helper.add("Logout", this::logout);
+            helper.add("Delete current user", this::deleteConfirmation);
             helper.askQuestions();
         }
     }
@@ -121,6 +122,7 @@ public class Terminal {
         asker.add(new Info("postalCode", "Postal Code:", DataType.STRING, ValidatorKeys.POSTAL_CODE));
         asker.add(new Info("longitude", "Longitude:", DataType.DOUBLE));
         asker.add(new Info("latitude", "Latitude:", DataType.DOUBLE));
+        asker.add(new Info("mainPrice", "Price:", DataType.DOUBLE));
         Listing listing = new Listing(asker.askQuestions());
 
         helper.add("windows");
@@ -136,6 +138,49 @@ public class Terminal {
     }
 
     private void deleteListing(){
+
+    }
+
+    private void bookListing(){
+        System.out.println("Select a listing to book:");
+        helper.setQuestions(getFilteredListings());
+    }
+
+    private ArrayList<String> getFilteredListings(){
+        ArrayList<String> filters = getFilters();
+        if(filters.contains("Distance from Location")){
+            asker.add(new Info("longitude", "Longitude:", DataType.DOUBLE));
+            asker.add(new Info("latitude", "Latitude:", DataType.DOUBLE));
+        }
+        if(filters.contains("Postal Code")){
+            asker.add(new Info("postalCode", "Postal Code:", DataType.STRING, ValidatorKeys.POSTAL_CODE));
+        }
+        if(filters.contains("Price Range")){
+            asker.add(new Info("mainPrice", "Price:", DataType.DOUBLE));
+        }
+        if(filters.contains("Address")){
+            asker.add(new Info("country", "Country:", DataType.STRING));
+            asker.add(new Info("city", "City:", DataType.STRING));
+        }
+        if(filters.contains("Available Date Range")){
+            asker.add(new Info("firstDate", "First Date:", DataType.STRING));
+            asker.add(new Info("lastDate", "Last Date:", DataType.STRING));
+        }
+        ListingFilter listsingsFilter = new ListingFilter(asker.askQuestions());
+        return null;
+    }
+
+    private ArrayList<String> getFilters(){
+        System.out.println("Select filters:");
+        helper.add("Distance from Location");
+        helper.add("Postal Code");
+        helper.add("Price Range");
+        helper.add("Address");
+        helper.add("Available Date Range");
+        return helper.askQuestionsWithMultipleInput();
+    }
+
+    private void createReview(){
 
     }
 }

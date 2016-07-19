@@ -9,7 +9,7 @@ import java.util.Map;
 public class Listing {
 
     private String address, postalCode, country;
-    private Double longitude, latitude;
+    private Double longitude, latitude, mainPrice;
     private ArrayList<String> characteristics;
 
     public Listing(Map listing) {
@@ -18,6 +18,11 @@ public class Listing {
         this.country = (String)listing.get("country");
         this.longitude = (Double)listing.get("longitude");
         this.latitude = (Double)listing.get("latitude");
+        this.mainPrice = (Double)listing.get("mainPrice");
+    }
+
+    public Double getMainPrice() {
+        return mainPrice;
     }
 
     public String getAddress() {
