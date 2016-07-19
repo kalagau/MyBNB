@@ -1,5 +1,11 @@
 package com.company;
 
+import sun.util.calendar.BaseCalendar;
+
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,21 +38,25 @@ public class InfoHelper {
         switch (info.type){
             case BOOLEAN:
                 int boolVal = getBoolean(input);
-                if(boolVal == -1) askQuestion(info);
+                if(boolVal == -1 || !(Boolean) info.isValid.apply(boolVal)) askQuestion(info);
                 else answers.put(info.key, boolVal);
                 break;
             case INTEGER:
                 int intVal = getInt(input);
-                if(intVal == -1) askQuestion(info);
+                if(intVal == -1 || !(Boolean) info.isValid.apply(intVal)) askQuestion(info);
                 else answers.put(info.key, intVal);
                 break;
             case DOUBLE:
                 double doubleVal = getDouble(input);
-                if(doubleVal == -1) askQuestion(info);
+                if(doubleVal == -1 || !(Boolean) info.isValid.apply(doubleVal)) askQuestion(info);
                 else answers.put(info.key, doubleVal);
                 break;
             case DATE:
+                Date dateVal = getDate(input);
+                if(dateVal == null || !(Boolean) info.isValid.apply(dateVal)) askQuestion(info);
+                else answers.put(info.key, dateVal);
             case STRING:
+                if(!(Boolean) info.isValid.apply(input)) askQuestion(info);
                 answers.put(info.key, input);
                 break;
         }
@@ -85,5 +95,13 @@ public class InfoHelper {
         }
     }
 
-
+    private Date getDate(String input){
+        String startDateString = "06/27/2007";
+        DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        try {
+            return (Date) df.parse(startDateString);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
 }
