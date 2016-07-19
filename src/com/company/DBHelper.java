@@ -447,5 +447,61 @@ public class DBHelper {
         return result;
     }
 
+    public static int commercialHosts(){
+        String sql = "select * from " +
+                "(select address.country,address.city,user_id, count(*) as numListing, s.totListing from listing " +
+                "INNER JOIN address on address.address_id=listing.address_id CROSS JOIN (select address.country," +
+                "address.city,count(*) as totListing from listing INNER JOIN address on " +
+                "address.address_id=listing.address_id GROUP BY address.country,address.city)s ON " +
+                "s.country=address.country AND s.city=address.city GROUP BY user_id,address.country,address.city)t " +
+                "WHERE t.numListing >= 0.1*t.totListing GROUP BY t.country ASC,t.city ASC,numListing DESC,t.user_id;";
+
+
+
+        int result = -1;
+        createConnection();
+        try {
+            PreparedStatement numListings = conn.prepareStatement(sql);
+            ResultSet rs = numListings.executeQuery();
+            if (rs.next())
+                result = rs.getInt(1);
+
+            rs.close();
+            numListings.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return result;
+    }
+
+
+    public static int reportRentalRanksByDate(java.sql.Date startDate, java.sql.Date endDate,boolean city){
+        String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.isActive=0 group by user_id)t group by" +
+                " t.numRental DESC,t.user_id WHERE start_date >=? and start_date<=?;
+        if (city)
+            sql = "select * from (select address.country,rental.user_id, count(*) as numRental from rental INNER JOIN" +
+                    " listing ON rental.listing_id=listing.listing_id INNER JOIN address on address.address_id =" +
+                    " listing.address_id WHERE rental.isActive = 0 group by rental.user_id,address.country)t where t.numRental > 1 group by" +
+                    " t.country ASC, t.numRental DESC,t.user_id;";
+        int result = -1;
+        createConnection();
+        try {
+            PreparedStatement numListings = conn.prepareStatement(sql);
+            numListings.setDate(1,startDate);
+            numListings.setDate(2,endDate);
+            ResultSet rs = numListings.executeQuery();
+            if (rs.next())
+                result = rs.getInt(1);
+
+            rs.close();
+            numListings.close();
+        } catch (SQLException e) {
+            System.err.println("Connection error occured!");
+        }
+        closeConnection();
+        return result;
+    }
+
 
 }
