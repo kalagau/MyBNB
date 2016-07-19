@@ -138,7 +138,7 @@ public class DBHelper {
             if (userId > 0) {
                 if (user.isRenter()) {
                     PreparedStatement card = conn.prepareStatement("INSERT INTO  credit_card (card_number, name, CCV,expiry_date)  VALUES (?,?,?,?);");
-                    card.setLong(1, user.getCreditCard().getNumber());
+                    card.setString(1, user.getCreditCard().getNumber());
                     card.setString(2, user.getName());
                     card.setInt(3, user.getCreditCard().getCCV());
                     card.setDate(4, user.getCreditCard().getExpiryDate());
@@ -148,7 +148,7 @@ public class DBHelper {
                         PreparedStatement stmt = conn.prepareStatement("INSERT INTO  renter (user_id,card_number,isActive)  VALUES (?,?,?);",
                                 PreparedStatement.RETURN_GENERATED_KEYS);
                         stmt.setInt(1, userId);
-                        stmt.setLong(2, user.getCreditCard().getNumber());
+                        stmt.setString(2, user.getCreditCard().getNumber());
                         stmt.setBoolean(3, true);
                         int complete = stmt.executeUpdate();
                         ResultSet rs = stmt.getGeneratedKeys();
@@ -361,15 +361,22 @@ public class DBHelper {
 //REPORT FUNCTIONS VERY VOLATILE- NEED to be verified on how they are supposed to work????
 
 
-
-    public static int searchRentalsByDate(java.sql.Date startDate, java.sql.Date endDate, String city){
+    //SQL UPDATED
+    public static int reportRentalsByDate(java.sql.Date startDate, java.sql.Date endDate,boolean postal){
+        String sql = "SELECT address.city, COUNT(*) as numRentals FROM rental INNER JOIN listing ON" +
+                " rental.listing_id=listing.listing_id INNER JOIN address ON listing.address_id=address.address_id" +
+                " where rental.start_date >= ? and rental.start_date <=? GROUP BY address.city;";
+        if (postal)
+            sql = "SELECT address.city, address.pCode, COUNT(*) as numRentals FROM rental INNER JOIN listing ON" +
+                    " rental.listing_id=listing.listing_id INNER JOIN address ON" +
+                    " listing.address_id=address.address_id where rental.start_date >= ? " +
+                    "and rental.start_date <=? GROUP BY address.city, address.pCode;";
         int result = -1;
         createConnection();
         try {
-            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM rental INNER JOIN listing ON rental.listing_id=listing.listing_id INNER JOIN address ON listing.address_id=address.address_id where   address.city=? and rental.start_date >= ? and rental.start_date <=?;");
-            numListings.setString(1,city);
-            numListings.setDate(2,startDate);
-            numListings.setDate(3,endDate);
+            PreparedStatement numListings = conn.prepareStatement(sql);
+            numListings.setDate(1,startDate);
+            numListings.setDate(2,endDate);
             ResultSet rs = numListings.executeQuery();
             if (rs.next())
                 result = rs.getInt(1);
@@ -383,35 +390,24 @@ public class DBHelper {
         return result;
     }
 
-    public static int searchRentalsByDate(java.sql.Date startDate, java.sql.Date endDate, String city, String postal_code){
-        int result = -1;
-        createConnection();
-        try {
-            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM rental INNER JOIN listing ON rental.listing_id=listing.listing_id INNER JOIN address ON listing.address_id=address.address_id where  address.postal_code=? address.city=? and rental.start_date >= ? and rental.start_date <=?;");
-            numListings.setString(1,postal_code);
-            numListings.setString(2,city);
-            numListings.setDate(3,startDate);
-            numListings.setDate(4,endDate);
 
-            ResultSet rs = numListings.executeQuery();
-            if (rs.next())
-                result = rs.getInt(1);
-
-            rs.close();
-            numListings.close();
-        } catch (SQLException e) {
-            System.err.println("Connection error occured!");
-        }
-        closeConnection();
-        return result;
-    }
-    public static int searchListings(String country){
+    public static int reportListings(int type){
+        String sql = "SELECT address.country,COUNT(*) as numListing FROM listing INNER JOIN address ON" +
+                " listing.address_id=address.address_id " +
+                "  GROUP BY address.country";
         int result = -1;
+        if (type==2)
+            sql = "SELECT address.country,address.city, COUNT(*) as numListing FROM listing INNER JOIN address ON" +
+                    " listing.address_id=address.address_id " +
+                    "  GROUP BY address.country,address.city";
+        if (type==3)
+            sql = "SELECT address.country,address.city,address.pCode, COUNT(*) as numListing FROM listing" +
+                    " INNER JOIN address ON listing.address_id=address.address_id " +
+                    "  GROUP BY address.country,address.city,address.pCode";
         createConnection();
         try {
             //Group By Country
-            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=? ");
-            numListings.setString(1,country);
+            PreparedStatement numListings = conn.prepareStatement(sql);
             ResultSet rs = numListings.executeQuery();
             if (rs.next())
                 result = rs.getInt(1);
@@ -425,35 +421,19 @@ public class DBHelper {
         return result;
     }
 
-    public static int searchListings(String country, String city){
+
+    public static int rankHosts(boolean city){
+        String sql = "select * from (select address.country,user_id, count(*) as numListing from listing" +
+                " INNER JOIN address on address.address_id=listing.address_id GROUP BY user_id,address.country)t" +
+                " GROUP BY t.country ASC,numListing DESC,t.user_id;";
+        if (city)
+            sql = "select * from (select address.country,address.city,user_id, count(*) as numListing from listing" +
+                    " INNER JOIN address on address.address_id=listing.address_id GROUP BY user_id,address.country" +
+                    ",address.city)t GROUP BY t.country ASC,t.city ASC,numListing DESC,t.user_id;";
         int result = -1;
         createConnection();
         try {
-            //Group By country City
-            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=? and address.city=? ");
-            numListings.setString(1,country);
-            numListings.setString(2,city);
-            ResultSet rs = numListings.executeQuery();
-            if (rs.next())
-                result = rs.getInt(1);
-
-            rs.close();
-            numListings.close();
-        } catch (SQLException e) {
-            System.err.println("Connection error occured!");
-        }
-        closeConnection();
-        return result;
-    }
-    public static int searchListings(String country,String city, String postal_code){
-        int result = -1;
-        createConnection();
-        try {
-            //Group By Country, City, Postal Code
-            PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=?and address.city=? and address.postal_code=? ");
-            numListings.setString(1,country);
-            numListings.setString(2,city);
-            numListings.setString(3,postal_code);
+            PreparedStatement numListings = conn.prepareStatement(sql);
             ResultSet rs = numListings.executeQuery();
             if (rs.next())
                 result = rs.getInt(1);
@@ -467,7 +447,5 @@ public class DBHelper {
         return result;
     }
 
-    //Select * from listings INNER JOIN host on listing.user_id=host.user_id GROUP BY address.country;
-    //Select * from listings INNER JOIN host on listing.user_id=host.user_id GROUP BY address.country,address.city;
 
 }
