@@ -409,6 +409,7 @@ public class DBHelper {
         int result = -1;
         createConnection();
         try {
+            //Group By Country
             PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=? ");
             numListings.setString(1,country);
             ResultSet rs = numListings.executeQuery();
@@ -428,6 +429,7 @@ public class DBHelper {
         int result = -1;
         createConnection();
         try {
+            //Group By country City
             PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=? and address.city=? ");
             numListings.setString(1,country);
             numListings.setString(2,city);
@@ -447,6 +449,7 @@ public class DBHelper {
         int result = -1;
         createConnection();
         try {
+            //Group By Country, City, Postal Code
             PreparedStatement numListings = conn.prepareStatement("SELECT COUNT(*) FROM listing INNER JOIN address ON listing.address_id=address.address_id where  address.country=?and address.city=? and address.postal_code=? ");
             numListings.setString(1,country);
             numListings.setString(2,city);
@@ -464,7 +467,7 @@ public class DBHelper {
         return result;
     }
 
-
-
+    //Select * from listings INNER JOIN host on listing.user_id=host.user_id GROUP BY address.country;
+    //Select * from listings INNER JOIN host on listing.user_id=host.user_id GROUP BY address.country,address.city;
 
 }
