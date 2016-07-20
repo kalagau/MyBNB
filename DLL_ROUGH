@@ -2,16 +2,16 @@
 
 create table address (
 address_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-pCode varchar(255) NOT NULL, 
+pCode varchar(6) NOT NULL, 
 country VARCHAR(255) NOT NULL, 
 city VARCHAR(255) NOT NULL,
-CHECK(CHAR_LENGTH(pCode) >= 2 AND CHAR_LENGTH(pCode) <= 10)) ENGINE INNODB;
+CHECK(CHAR_LENGTH(pCode) >= 6 AND CHAR_LENGTH(pCode) <= 6)) ENGINE INNODB;
 
 delimiter |
 CREATE TRIGGER addressIns BEFORE INSERT ON address
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF CHAR_LENGTH(NEW.pCode) <= 2 OR CHAR_LENGTH(NEW.pCode) >= 10 THEN
+IF CHAR_LENGTH(NEW.pCode) <= 5 OR CHAR_LENGTH(NEW.pCode) >= 7 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -24,7 +24,7 @@ delimiter ;
 CREATE TRIGGER addressUpd BEFORE UPDATE ON address
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF CHAR_LENGTH(NEW.pCode) <= 2 OR CHAR_LENGTH(NEW.pCode) >= 10 THEN
+IF CHAR_LENGTH(NEW.pCode) <= 5 OR CHAR_LENGTH(NEW.pCode) >= 7 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
@@ -37,19 +37,19 @@ delimiter ;
 //CreditCard
 
 create table credit_card (
-card_number BIGINT NOT NULL PRIMARY KEY,
+card_number VARCHAR(19) NOT NULL PRIMARY KEY,
 name VARCHAR(255) NOT NULL,
-CCV INT NOT NULL,
+CCV VARCHAR(4) NOT NULL,
 expiry_date DATE NOT NULL,
-CHECK(CCV > 0 AND CCV <= 9999),
+CHECK(CCV > '0' AND CCV <= '9999'),
 check(expiry_date >= CURDATE()), 
-check(card_number>=100000000000 and card_number <= 9999999999999999999 )) ENGINE INNODB;
+check(card_number>='100000000000' and card_number <= '9999999999999999999' )) ENGINE INNODB;
 
 delimiter |
 CREATE TRIGGER credit_cardIns BEFORE INSERT ON credit_card
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.CCV <= 0 OR NEW.CCV > 9999 OR NEW.expiry_date < CURDATE() OR NEW.card_number < 1000000000000 OR NEW.card_number > 9999999999999999999 THEN
+IF NEW.CCV <= '0' OR NEW.CCV > '9999' OR NEW.expiry_date < CURDATE() OR NEW.card_number < '1000000000000' OR NEW.card_number > '9999999999999999999' THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -62,7 +62,7 @@ delimiter |
 CREATE TRIGGER credit_cardUpd BEFORE UPDATE ON credit_card
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.CCV <= 0 OR NEW.CCV > 9999 OR NEW.expiry_date < CURDATE() OR NEW.card_number < 1000000000000 OR NEW.card_number > 9999999999999999999 THEN
+IF NEW.CCV <= '0' OR NEW.CCV > '9999' OR NEW.expiry_date < CURDATE() OR NEW.card_number < '1000000000000' OR NEW.card_number > '9999999999999999999' THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
@@ -118,15 +118,15 @@ FOREIGN KEY (address_id) REFERENCES address(address_id),
 occupation varchar(255) NOT NULL,
 name varchar(255) NOT NULL, 
 DOB DATE NOT NULL, 
-SIN INT(9) NOT NULL,
+SIN VARCHAR(9) NOT NULL,
 CHECK(DOB < DATE_SUB(CURDATE(), INTERVAL 18 YEAR)), 
-CHECK(SIN > 100000000 AND SIN <= 999999999)) ENGINE INNODB;
+CHECK(SIN > '100000000' AND SIN <= '999999999')) ENGINE INNODB;
 
 delimiter |
 CREATE TRIGGER userIns BEFORE INSERT ON user
 FOR EACH ROW BEGIN	
 DECLARE msg varchar(255);
-IF NEW.DOB >= DATE_SUB(CURDATE(), INTERVAL 18 YEAR) OR NEW.SIN < 100000000  OR NEW.SIN > 999999999 THEN
+IF NEW.DOB >= DATE_SUB(CURDATE(), INTERVAL 18 YEAR) OR NEW.SIN < '100000000'  OR NEW.SIN > '999999999' THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -139,7 +139,7 @@ delimiter |
 CREATE TRIGGER userUpd BEFORE UPDATE ON user
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.DOB >= DATE_SUB(CURDATE(), INTERVAL 18 YEAR) OR NEW.SIN < 100000000  OR NEW.SIN > 999999999 THEN
+IF NEW.DOB >= DATE_SUB(CURDATE(), INTERVAL 18 YEAR) OR NEW.SIN < '100000000'  OR NEW.SIN > '999999999' THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
@@ -275,12 +275,13 @@ END
 delimiter ;
 
 //RENTAL
-
+//ADD constraint for canccledd on Here 
 
 create table rental (
 rental_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 user_id int(50) NOT NULL,
 cancelled_By int(1) NOT NULL DEFAULT 0,
+cancelled_On DATE,
 listing_id int(50) NOT NULL,
 FOREIGN KEY (user_id) REFERENCES renter(user_id),
 FOREIGN KEY (listing_id) REFERENCES listing(listing_id),
