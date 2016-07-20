@@ -1,8 +1,6 @@
 package com.company;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import com.company.Validators.ValidatorKeys;
@@ -13,9 +11,9 @@ import com.company.Info.DataType;
  */
 public class Terminal {
 
-    Scanner sc;
-    IOHelper helper;
-    InfoHelper asker;
+    private Scanner sc;
+    private IOHelper helper;
+    private InfoHelper asker;
 
     private String userID = "";
     private String userName = "";
@@ -35,14 +33,14 @@ public class Terminal {
         while(true){
             if(isHost){
                 helper.add("Create new listing", this::createListing);
-                helper.add("Show listing information", this::showListingInfo);
+                helper.add("Show listing information", this::showMyListingInfo);
                 helper.add("Delete a listing", this::deleteListing);
             }else{
-                helper.add("Book a listing", this::bookListing);
+                helper.add("Book a listing", this::selectListingToBook);
             }
             helper.add("Create a Review", this::createReview);
             helper.add("Logout", this::logout);
-            helper.add("Delete current user", this::deleteConfirmation);
+            helper.add("Delete current user", this::deleteUserConfirmation);
             helper.askQuestions();
         }
     }
@@ -98,13 +96,13 @@ public class Terminal {
         System.out.println("Welcome back, " + userName);
     }
 
-    private void deleteConfirmation(){
-        helper.add("Permanently delete " + userName + "'s account", this::delete);
-        helper.add("No, I've changed my mind!", ()->{});
+    private void deleteUserConfirmation(){
+        helper.add("Permanently delete " + userName + "'s account", this::deleteUser);
+        helper.add("No, I've changed my mind!");
         helper.askQuestions();
     }
 
-    private void delete(){
+    private void deleteUser(){
         DBHelper.deleteUser(userID);
         logout();
     }
@@ -125,25 +123,47 @@ public class Terminal {
         asker.add(new Info("mainPrice", "Price:", DataType.DOUBLE));
         Listing listing = new Listing(asker.askQuestions());
 
-        helper.add("windows");
-        helper.add("kitchen");
-        helper.add("air conditioning");
-        helper.add("free food");
-        helper.add("pizza");
+        helper.setQuestions(DBFunctions.getListingCharacteristics());
         listing.setCharacteristics(helper.askQuestionsWithMultipleInput());
+        DBFunctions.createListing(listing);
     }
 
-    private void showListingInfo(){
+    private void showMyListingInfo(){
+        String listingID = getIDFromMySelectedListing();
 
     }
 
     private void deleteListing(){
+        String listingID = getIDFromMySelectedListing();
+
+        if(DBFunctions.deleteListing(listingID) != "error")
+            System.out.println("Successfully deleted!");
+    }
+
+    private String getIDFromMySelectedListing(){
+        System.out.println("Select a listing:");
+        ArrayList<String> listings = DBFunctions.getHostListings(userID);
+        listings.forEach(l->helper.add(l));
+        String listingText = helper.askQuestions();
+        return listingText.split(":")[0];
+    }
+
+    private void selectListingToBook(){
+        System.out.println("Select a listing to book:");
+        helper.setQuestions(getFilteredListings());
+        String listingID = helper.askQuestions().split(":")[2];
+        printListingInfo(listingID);
+//      TODO  helper.add("Book this listing" ()->bookListing(listingID));
+        helper.add("Go back to results", this::selectListingToBook);
+        helper.add("Go to main menu");
+    }
+
+    private void bookListing(String listingID){
 
     }
 
-    private void bookListing(){
-        System.out.println("Select a listing to book:");
-        helper.setQuestions(getFilteredListings());
+    private void printListingInfo(String listingID){
+
     }
 
     private ArrayList<String> getFilteredListings(){
@@ -151,6 +171,7 @@ public class Terminal {
         if(filters.contains("Distance from Location")){
             asker.add(new Info("longitude", "Longitude:", DataType.DOUBLE));
             asker.add(new Info("latitude", "Latitude:", DataType.DOUBLE));
+            asker.add(new Info("maxDistance", "Max Distance (km):", DataType.DOUBLE));
         }
         if(filters.contains("Postal Code")){
             asker.add(new Info("postalCode", "Postal Code:", DataType.STRING, ValidatorKeys.POSTAL_CODE));
@@ -167,7 +188,7 @@ public class Terminal {
             asker.add(new Info("lastDate", "Last Date:", DataType.STRING));
         }
         ListingFilter listsingsFilter = new ListingFilter(asker.askQuestions());
-        return null;
+        return DBFunctions.getListings(listsingsFilter);
     }
 
     private ArrayList<String> getFilters(){

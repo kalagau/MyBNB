@@ -11,7 +11,7 @@ public class ListingFilter {
 
 
     private String address, postalCode, country;
-    private Double longitude, latitude, lowestPrice, highestPrice;
+    private Double longitude, latitude, lowestPrice, highestPrice, maxDistance;
     private Date firstDate, lastDate;
 
     public ListingFilter(Map listing) {
@@ -22,6 +22,7 @@ public class ListingFilter {
         if (listing.containsKey("latitude")) this.latitude = (Double) listing.get("latitude");
         if (listing.containsKey("lowestPrice")) this.lowestPrice = (Double) listing.get("lowestPrice");
         if (listing.containsKey("highestPrice")) this.highestPrice = (Double) listing.get("highestPrice");
+        if (listing.containsKey("maxDistance")) this.maxDistance = (Double) listing.get("maxDistance");
         if (listing.containsKey("firstDate")) this.firstDate = (Date) listing.get("firstDate");
         if (listing.containsKey("lastDate")) this.lastDate = (Date) listing.get("lastDate");
     }
