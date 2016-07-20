@@ -67,7 +67,7 @@ public class Terminal {
             user.setCreditCard(new CreditCard(asker.askQuestions()));
         }
 
-        String response = DBHelper.createNewUser(user);
+        String response = DBTalker.createNewUser(user);
         if (!response.equals("error")){
             userID = response;
             userName = user.getName();
@@ -85,7 +85,7 @@ public class Terminal {
 
     private void showUsers(String type){
         isHost = type.equals("login as host");
-        ArrayList<String> users = isHost ? DBHelper.getAllHostsNamesAndIDs() : DBHelper.getAllRentersNamesAndIDs();
+        ArrayList<String> users = isHost ? DBTalker.getAllHostsNamesAndIDs() : DBTalker.getAllRentersNamesAndIDs();
         helper.setQuestions(users);
 
         String selected = helper.askQuestions();
@@ -103,7 +103,7 @@ public class Terminal {
     }
 
     private void deleteUser(){
-        DBHelper.deleteUser(userID);
+        DBTalker.deleteUser(userID);
         logout();
     }
 
@@ -123,9 +123,9 @@ public class Terminal {
         asker.add(new Info("mainPrice", "Price:", DataType.DOUBLE));
         Listing listing = new Listing(asker.askQuestions());
 
-        helper.setQuestions(DBFunctions.getListingCharacteristics());
+        helper.setQuestions(DBTalker.getListingCharacteristics());
         listing.setCharacteristics(helper.askQuestionsWithMultipleInput());
-        DBFunctions.createListing(listing);
+        DBTalker.createListing(listing);
     }
 
     private void showMyListingInfo(){
@@ -136,13 +136,13 @@ public class Terminal {
     private void deleteListing(){
         String listingID = getIDFromMySelectedListing();
 
-        if(DBFunctions.deleteListing(listingID) != "error")
+        if(DBTalker.deleteListing(listingID) != "error")
             System.out.println("Successfully deleted!");
     }
 
     private String getIDFromMySelectedListing(){
         System.out.println("Select a listing:");
-        ArrayList<String> listings = DBFunctions.getHostListings(userID);
+        ArrayList<String> listings = DBTalker.getHostListings(userID);
         listings.forEach(l->helper.add(l));
         String listingText = helper.askQuestions();
         return listingText.split(":")[0];
@@ -188,7 +188,7 @@ public class Terminal {
             asker.add(new Info("lastDate", "Last Date:", DataType.STRING));
         }
         ListingFilter listsingsFilter = new ListingFilter(asker.askQuestions());
-        return DBFunctions.getListings(listsingsFilter);
+        return DBTalker.getListings(listsingsFilter);
     }
 
     private ArrayList<String> getFilters(){
