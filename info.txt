@@ -2,5 +2,11 @@
 CURDATE() - INTERVAL 18 YEARS
 
 
+//we add cancelled?BY to rental
+//we add isActive to listing
+//we add canceleed Date to rental
+//Some Data changed to strings for CC and user
 
-CreditCard -number is Date.!
+	//queries for second last report
+	select rental.user_id, count(*) as numCancellations from rental inner join renter on rental.user_id=renter.user_id where rental.cancelled_By=2 AND renter.isActive IS TRUE group by rental.user_id;
+	select * FROM (select rental.user_id, count(*) as total,t.tot,s.renters from rental inner join renter on rental.user_id=renter.user_id cross join (select count(*) as tot from rental)t cross join (select count(*) as renters from renter)s where rental.cancelled_By=2 AND renter.isActive IS TRUE group by rental.user_id,t.tot,s.renters)u where u.total<= u.tot/u.renters;
