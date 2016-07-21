@@ -19,6 +19,8 @@ public class IOHelper {
     }
 
     public String askQuestions(){
+        if(questions.isEmpty())
+            return "";
         for(int i = 0; i< questions.size(); i++)
             System.out.println("(" + (i+1) + ") " + questions.get(i));
 

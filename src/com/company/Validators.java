@@ -41,6 +41,6 @@ public class Validators {
     }
 
     public static boolean isPostalCode(String str){
-        return str.matches("(\\p{Alpha}\\d){3}");
+        return str.matches("(\\p{Alpha}\\d){3}");//A1A1A1
     }
 }

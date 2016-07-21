@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class DBTalker {
 
     public static ArrayList<String> getListings(ListingFilter filter) {
-        return null;
+        return new ArrayList<>();
     }
 
     public static String createListing(Listing listing){
@@ -30,7 +30,7 @@ public class DBTalker {
     }
 
     public static ArrayList<String> getHostListings(String userID){
-        return null;
+        return new ArrayList<>();
     }
 
     public static String createNewUser(User user) {
@@ -65,8 +65,41 @@ public class DBTalker {
         }
     }
 
+    public static String deleteBooking(String bookingID) {
+        try { return null; }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
+    }
+
+    public static ArrayList<String> getMyBookings(String userID) {
+        try { return new ArrayList<>(); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
+    }
+
+    public static Listing getListingInfo(String listingID) {
+        try { return null; }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
+    }
+
+    private static ArrayList<String> getReviewableHosts(String userID){
+        return new ArrayList<>();
+    }
+
+    private static ArrayList<String> getReviewableRenters(String userID){
+        return new ArrayList<>();
+    }
+
     private static void errorOccurred(Exception e){
         System.out.println("An error has occurred");
         e.printStackTrace();
     }
+
 }

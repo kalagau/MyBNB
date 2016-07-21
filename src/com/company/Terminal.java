@@ -1,6 +1,7 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import com.company.Validators.ValidatorKeys;
@@ -37,6 +38,8 @@ public class Terminal {
                 helper.add("Delete a listing", this::deleteListing);
             }else{
                 helper.add("Book a listing", this::selectListingToBook);
+                helper.add("Show my bookings", this::showBooking);
+                helper.add("Delete a booking", this::deleteBooking);
             }
             helper.add("Create a Review", this::createReview);
             helper.add("Logout", this::logout);
@@ -68,7 +71,7 @@ public class Terminal {
         }
 
         String response = DBTalker.createNewUser(user);
-        if (!response.equals("error")){
+        if (response != null){
             userID = response;
             userName = user.getName();
             System.out.println("Welcome, " + userName);
@@ -130,14 +133,20 @@ public class Terminal {
 
     private void showMyListingInfo(){
         String listingID = getIDFromMySelectedListing();
+        if(!listingID.isEmpty()){
+
+        }else
+            printNotFound("listings");
 
     }
 
     private void deleteListing(){
         String listingID = getIDFromMySelectedListing();
-
-        if(DBTalker.deleteListing(listingID) != "error")
-            System.out.println("Successfully deleted!");
+        if(!listingID.isEmpty()){
+            if(DBTalker.deleteListing(listingID) != null)
+                System.out.println("Successfully deleted!");
+        }else
+            printNotFound("Listings");
     }
 
     private String getIDFromMySelectedListing(){
@@ -145,25 +154,64 @@ public class Terminal {
         ArrayList<String> listings = DBTalker.getHostListings(userID);
         listings.forEach(l->helper.add(l));
         String listingText = helper.askQuestions();
-        return listingText.split(":")[0];
+        return getListingID(listingText);
     }
 
     private void selectListingToBook(){
         System.out.println("Select a listing to book:");
-        helper.setQuestions(getFilteredListings());
-        String listingID = helper.askQuestions().split(":")[2];
-        printListingInfo(listingID);
-//      TODO  helper.add("Book this listing" ()->bookListing(listingID));
-        helper.add("Go back to results", this::selectListingToBook);
-        helper.add("Go to main menu");
+        ArrayList<String> filteredListings = getFilteredListings();
+        if(!filteredListings.isEmpty()) {
+            helper.setQuestions(filteredListings);
+            String listingID = getListingID(helper.askQuestions());
+            printListingInfo(listingID);
+            helper.add("Book this listing", () -> bookListing(listingID));
+            helper.add("Go back to results", this::selectListingToBook);
+            helper.add("Go to main menu");
+        } else
+            printNotFound("listings");
+    }
+
+    private void showListingInfo(String listingID){
+
     }
 
     private void bookListing(String listingID){
+    }
 
+    private void showBooking(){
+        String bookingID = selectFromMyBookings();
+        if(!bookingID.isEmpty())
+            showListingInfo(bookingID);
+        else
+            printNotFound("bookings");
+    }
+
+    private void deleteBooking(){
+        String bookingID = selectFromMyBookings();
+        if(!bookingID.isEmpty())
+            DBTalker.deleteBooking(bookingID);
+        else
+            printNotFound("bookings");
+    }
+
+    private String selectFromMyBookings(){
+        System.out.println("Select a booking:");
+        helper.setQuestions(DBTalker.getMyBookings(userID));
+        return getBookingID(helper.askQuestions());
+    }
+
+    private String getListingID(String listingText){
+        return "";
+//        return listingText.split(":")[0];
+    }
+
+    private String getBookingID(String bookingText){
+        return "";
+//        return bookingText.split(":")[0];
     }
 
     private void printListingInfo(String listingID){
-
+        Listing listing = DBTalker.getListingInfo(listingID);
     }
 
     private ArrayList<String> getFilteredListings(){
@@ -187,8 +235,8 @@ public class Terminal {
             asker.add(new Info("firstDate", "First Date:", DataType.STRING));
             asker.add(new Info("lastDate", "Last Date:", DataType.STRING));
         }
-        ListingFilter listsingsFilter = new ListingFilter(asker.askQuestions());
-        return DBTalker.getListings(listsingsFilter);
+        ListingFilter listingsFilter = new ListingFilter(asker.askQuestions());
+        return DBTalker.getListings(listingsFilter);
     }
 
     private ArrayList<String> getFilters(){
@@ -203,5 +251,10 @@ public class Terminal {
 
     private void createReview(){
 
+    }
+
+    private void printNotFound(String items){
+        System.out.println("...");
+        System.out.println("No " + items + " could be found!");
     }
 }
