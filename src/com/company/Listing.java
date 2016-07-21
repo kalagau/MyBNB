@@ -9,7 +9,16 @@ import java.util.Map;
  */
 public class Listing {
 
-    private String address, postalCode, country, city;
+    private String address;
+    private String postalCode;
+    private String country;
+    private String city;
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    private String type;
     private Double mainPrice;
     private BigDecimal longitude, latitude;
     private int numberOfBedrooms;
@@ -26,6 +35,7 @@ public class Listing {
         this.mainPrice = (Double)listing.get("mainPrice");
         this.numberOfBedrooms = (int)listing.get("numberOfBedrooms");
         this.hasKitchen = (boolean)listing.get("hasKitchen");
+        this.type = (String)listing.get("type");
     }
 
     public Double getMainPrice() {
@@ -66,6 +76,10 @@ public class Listing {
 
     public boolean hasKitchen() {
         return hasKitchen;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public void setCharacteristics(ArrayList<String> characteristics) {

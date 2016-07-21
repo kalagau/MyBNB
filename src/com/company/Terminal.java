@@ -129,6 +129,11 @@ public class Terminal {
         asker.add(new Info("hasKitchen", "Does it have a kitchen? (y/n):", DataType.BOOLEAN));
         Listing listing = new Listing(asker.askQuestions());
 
+        helper.add("full house");
+        helper.add("room");
+        helper.add("apartment");
+        listing.setType(helper.askQuestions());
+
         System.out.println("Enter applicable amenities below, separated by commas");
         helper.setQuestions(DBTalker.getListingCharacteristics());
         listing.setCharacteristics(helper.askQuestionsWithMultipleInput());
@@ -246,7 +251,16 @@ public class Terminal {
         if(filters.contains("Minimum Number of Bedrooms")){
             asker.add(new Info("minNumberOfBedrooms", "Minimum number of bedrooms:", DataType.INTEGER));
         }
+
         ListingFilter listingsFilter = new ListingFilter(asker.askQuestions());
+
+        if(filters.contains("Type of Place")){
+            helper.add("full house");
+            helper.add("room");
+            helper.add("apartment");
+            listingsFilter.setType(helper.askQuestions());
+        }
+
         return DBTalker.getListings(listingsFilter);
     }
 
@@ -258,6 +272,7 @@ public class Terminal {
         helper.add("Address");
         helper.add("Available Date Range");
         helper.add("Minimum Number of Bedrooms");
+        helper.add("Type of Place");
         return helper.askQuestionsWithMultipleInput();
     }
 

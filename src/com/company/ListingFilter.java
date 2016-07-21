@@ -10,15 +10,20 @@ import java.util.Map;
 public class ListingFilter {
 
 
-    private String address, postalCode, country;
+    private String address;
+    private String postalCode;
+    private String country;
+
+    private String type;
+
     private Double longitude= -1.0, latitude= -1.0, lowestPrice= -1.0, highestPrice= -1.0, maxDistance= -1.0;
     private Date firstDate, lastDate;
     private int minNumberOfBedrooms = -1;
-
     public ListingFilter(Map listing) {
         if (listing.containsKey("address")) this.address = (String) listing.get("address");
         if (listing.containsKey("postalCode")) this.postalCode = (String) listing.get("postalCode");
         if (listing.containsKey("country")) this.country = (String) listing.get("country");
+        if (listing.containsKey("type")) this.type = (String) listing.get("type");
         if (listing.containsKey("longitude")) this.longitude = (Double) listing.get("longitude");
         if (listing.containsKey("latitude")) this.latitude = (Double) listing.get("latitude");
         if (listing.containsKey("lowestPrice")) this.lowestPrice = (Double) listing.get("lowestPrice");
@@ -69,4 +74,11 @@ public class ListingFilter {
         return lastDate;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }
