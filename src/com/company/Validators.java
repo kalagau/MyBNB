@@ -12,7 +12,8 @@ import java.util.function.Function;
 public class Validators {
 
     public static Map<ValidatorKeys, Function> Validation;
-    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE}
+    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE, FUTURE_START_DATE, FUTURE_END_DATE}
+    private static Calendar startDate;
 
     public static void initMap(){
         Validation = new HashMap<>();
@@ -20,6 +21,8 @@ public class Validators {
         Validation.put(ValidatorKeys.IS_ADULT, (d)-> Validators.isAdult((Date)d));
         Validation.put(ValidatorKeys.ALL_NUMBERS, (s)-> Validators.allNumbers((String)s));
         Validation.put(ValidatorKeys.POSTAL_CODE, (s)-> Validators.isPostalCode((String)s));
+        Validation.put(ValidatorKeys.FUTURE_START_DATE, (d)-> Validators.isFutureStartDate((Date)d));
+        Validation.put(ValidatorKeys.FUTURE_END_DATE, (d)-> Validators.isFutureEndDate((Date)d));
     }
 
     public static boolean noValidation(Object o){
@@ -43,4 +46,20 @@ public class Validators {
     public static boolean isPostalCode(String str){
         return str.matches("(\\p{Alpha}\\d){3}");//A1A1A1
     }
+
+    public static boolean isFutureStartDate(Date date){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        startDate = cal;
+        return !cal.before(Calendar.getInstance());
+    }
+
+    public static boolean isFutureEndDate(Date date){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return cal.after(startDate);
+    }
+
+
+
 }

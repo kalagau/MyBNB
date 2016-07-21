@@ -159,9 +159,9 @@ public class Terminal {
     }
 
     private void selectListingToBook(){
-        System.out.println("Select a listing to book:");
         ArrayList<String> filteredListings = getFilteredListings();
         if(!filteredListings.isEmpty()) {
+            System.out.println("Select a listing to book:");
             helper.setQuestions(filteredListings);
             String listingID = getListingID(helper.askQuestions());
             printListingInfo(listingID);
@@ -237,8 +237,8 @@ public class Terminal {
             asker.add(new Info("city", "City:", DataType.STRING));
         }
         if(filters.contains("Available Date Range")){
-            asker.add(new Info("firstDate", "First Date:", DataType.STRING));
-            asker.add(new Info("lastDate", "Last Date:", DataType.STRING));
+            asker.add(new Info("firstDate", "First Date (yyyy-mm-dd):", DataType.DATE, ValidatorKeys.FUTURE_START_DATE));
+            asker.add(new Info("lastDate", "Last Date (yyyy-mm-dd):", DataType.DATE, ValidatorKeys.FUTURE_END_DATE));
         }
         ListingFilter listingsFilter = new ListingFilter(asker.askQuestions());
         return DBTalker.getListings(listingsFilter);
