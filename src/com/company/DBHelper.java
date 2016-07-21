@@ -3,6 +3,7 @@ package com.company;
 import java.sql.*;
 import java.util.ArrayList;
 
+
 /**
  * Created by Daniel on 2016-07-16.
  */
@@ -241,28 +242,28 @@ public class DBHelper {
             deleteUser = conn.prepareStatement("DELETE FROM user where user_id =? ;");
             updateRenter = conn.prepareStatement("UPDATE  renter SET  isActive=?  where user_id =? ;");
             updateHost = conn.prepareStatement("UPDATE  host SET  isActive=?  where user_id =? ;");
-            updateListings = conn.prepareStatement("UPDATE listing INNER JOIN host ON listing.user_id=host.user_id SET listing.isActive=? where listing.isActive=? AND host.user_id=?;");
-            updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET cancelled_By =?,isAvailable = ? WHERE host.user_id=? AND listing.isActive =? AND rental.end_date >= CURDATE();");
+            updateListings = conn.prepareStatement("UPDATE listing INNER JOIN host ON listing.user_id=host.user_id SET listing.isActive =? where listing.isActive =? AND host.user_id =?;");
+            updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET cancelled_By =?,cancelled_On = CURDATE() WHERE host.user_id=? AND listing.isActive =? AND rental.end_date >= CURDATE();");
             updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET isAvailable = ? WHERE host.user_id=? AND listing.isActive =? AND calendar_entry.date >= CURDATE();");
             deleteUser.setInt(1, Integer.parseInt(userID));
             updateRenter.setBoolean(1,false);
-            updateRenter.setInt(1, Integer.parseInt(userID));
+            updateRenter.setInt(2, Integer.parseInt(userID));
             updateHost.setBoolean(1,false);
-            updateHost.setInt(1, Integer.parseInt(userID));
+            updateHost.setInt(2, Integer.parseInt(userID));
             updateListings.setBoolean(1,false);
             updateListings.setBoolean(2,true);
             updateListings.setInt(3,Integer.parseInt(userID));
             if(updateListings.executeUpdate() < 0)
                 cleanDelete = false;
             updateRental.setInt(1,1);
-            updateRental.setBoolean(2,false);
-            updateRental.setInt(3,Integer.parseInt(userID));
-            updateRental.setBoolean(4,true);
+            //updateRental.setBoolean(2,false);
+            updateRental.setInt(2,Integer.parseInt(userID));
+            updateRental.setBoolean(3,true);
             if(updateRental.executeUpdate() < 0)
                 cleanDelete = false;
             updateCalendar.setBoolean(1,false);
             updateCalendar.setInt(2,Integer.parseInt(userID));
-            updateCalendar.setBoolean(1,true);
+            updateCalendar.setBoolean(3,true);
             if(updateCalendar.executeUpdate() < 0)
                 cleanDelete = false;
 
@@ -360,6 +361,191 @@ public class DBHelper {
             }
         }
         return list;
+    }
+    public static String createListing(Listing listing,String userID) throws Exception{
+
+        PreparedStatement createListing = null;
+        PreparedStatement createAddress = null;
+        PreparedStatement createLocation = null;
+        ResultSet rsAddr = null;
+        ResultSet rsLoc = null;
+        ResultSet rs = null;
+        int addrId;
+        int locId;
+        int listingId = -1;
+        String sql = "INSERT INTO listing (location_id, address_id, type, num_bedrooms #%#%# )  VALUES (?,?,?,?";
+        String colNames ="";
+        int cCount = 0;
+
+        for (int i = 0; i < listing.getCharacteristics().size(); i++) {
+            colNames += ", " + listing.getCharacteristics().get(i);
+            sql += ",?";
+            cCount++;
+        }
+        sql.replace("#%#%#",colNames);
+        sql+= ");";
+
+
+        try{
+            //needs to be implemented...
+            if (commercialCheck(Integer.parseInt(userID),listing.getCountry(),listing.getCity())){
+                return "You have exceeded the max number of acceptable listings in the specified location";
+            }
+            createConnection();
+            createAddress = conn.prepareStatement("INSERT INTO  address (pCode, country, city)  VALUES (?,?,?);",
+                    PreparedStatement.RETURN_GENERATED_KEYS);
+            createAddress.setString(1,listing.getPostalCode());
+            createAddress.setString(2,listing.getCity(););
+            createLocation = conn.prepareStatement("INSERT INTO location (latitude, longitude)  VALUES (?,?);",
+                    PreparedStatement.RETURN_GENERATED_KEYS);
+            createLocation.setBigDecimal(1, listing.getLatitude());
+            createLocation.setBigDecimal(2, listing.getLongitude());
+            int checkAddr = createAddress.executeUpdate();
+            int checkLoc = createLocation.executeUpdate();
+            if (checkAddr >0 && checkLoc > 0){
+                rsAddr = createAddress.getGeneratedKeys();
+                rsLoc = createLocation.getGeneratedKeys();
+                if (rsAddr.next() && rsLoc.next()) {
+                    addrId = (rsAddr.getInt(1));
+                    locId = (rsLoc.getInt(1));
+
+                }
+                rsAddr.close();
+                rsLoc.close();
+            }
+            if (addrId != -1 && locId != -1 ){
+                createListing = conn.prepareStatement(sql,PreparedStatement.RETURN_GENERATED_KEYS);
+                createListing.setInt(1,Integer.parseInt(userID));
+                createListing.setInt(3,addrId);
+                createListing.setInt(2,locId);
+                createListing.setString(4, listing.getListingType());
+                createListing.setInt(5, listing.getNumBedrooms());
+                for (int i = 6; i <= 5+cCount; i++) {
+                    createListing.setBoolean(i, true);
+
+                }
+                int result = createListing.executeUpdate();
+                rs = createListing.getGeneratedKeys();
+
+                if (result > 0 && rs.next()){
+                    listingId = rs.getInt(1);
+                }
+                createListing.close();
+                rs.close();
+
+            }
+            closeConnection();
+            createAddress.close();
+            createLocation.close();
+
+        }catch (Exception e){
+            throw e;
+        }finally {
+            try  {
+                createAddress.close();
+                createLocation.close();
+                rsAddr.close();
+                rsLoc.close();
+                createListing.close();
+                rs.close();
+            } catch (Exception e){
+                int a =0;
+            }
+        }
+
+        return String.valueOf(listingId);
+    }
+
+    public static String deleteListing(String listingID) throws Exception{
+        boolean cleanDelete = true;
+        PreparedStatement updateListing = null;
+        PreparedStatement updateRental = null;
+        PreparedStatement updateCalendar = null;
+
+        try {
+            createConnection();
+
+            updateListing = conn.prepareStatement("UPDATE listing SET listing.isActive =? where listing.isActive =? AND listing.listing_id =?;");
+            updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id  SET cancelled_By =?,cancelled_On = CURDATE() WHERE listing.isActive =? AND rental.end_date >= CURDATE();");
+            updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id SET isAvailable = ? WHERE listing.isActive =? AND calendar_entry.date >= CURDATE();");
+
+            updateListing.setBoolean(1,false);
+            updateListing.setBoolean(2,true);
+            updateListing.setInt(3,Integer.parseInt(listingID));
+            if(updateListing.executeUpdate() < 0)
+                cleanDelete = false;
+            updateRental.setInt(1,1);
+            //updateRental.setBoolean(2,false);
+            //updateRental.setInt(2,Integer.parseInt(userID));
+            updateRental.setBoolean(2,true);
+            if(updateRental.executeUpdate() < 0)
+                cleanDelete = false;
+            updateCalendar.setBoolean(1,false);
+            updateCalendar.setBoolean(2,true);
+            if(updateCalendar.executeUpdate() < 0)
+                cleanDelete = false;
+
+
+
+            updateListing.close();
+            updateRental.close();
+            updateCalendar.close();
+            closeConnection();
+        } catch (Exception e) {
+            throw e;
+        }finally{
+            try{
+
+                updateListing.close();
+                updateRental.close();
+                updateCalendar.close();
+            }catch (Exception e){
+                int a=0;
+            }
+        }
+            return String.valueOf(cleanDelete);
+    }
+
+
+    public static boolean commercialCheck(int userID, String country, String city) throws Exception{
+        PreparedStatement numListings = null;
+        ResultSet rs = null;
+        String sql = "select * from " +
+                "(select address.country,address.city,user_id, count(*) as numListing, s.totListing from listing " +
+                "INNER JOIN address on address.address_id=listing.address_id CROSS JOIN (select address.country,address.city,count(*) as totListing from listing " +
+                "INNER JOIN address on address.address_id=listing.address_id GROUP BY address.country,address.city)s ON s.country=address.country AND s.city=address.city " +
+                "WHERE user_id=? and isActive=? address.country=? and address.city =? GROUP BY user_id,address.country,address.city)t " +
+                "WHERE t.numListing >= 0.1*t.totListing and t.numListing >= 5;";
+
+
+
+        boolean result = false;
+        try {
+            createConnection();
+            numListings = conn.prepareStatement(sql);
+            numListings.setInt(1,userID);
+            numListings.setBoolean(2,true);
+            numListings.setString(3,country);
+            numListings.setString(4,city);
+            rs = numListings.executeQuery();
+            if (rs.next())
+                result = true;
+
+            rs.close();
+            numListings.close();
+            closeConnection();
+
+        } catch (Exception e) {
+            throw e;
+        } finally{
+            try{
+                rs.close();
+                numListings.close();
+            }catch (Exception e){
+                int a =0;
+            }
+        }
+        return result;
     }
 
 //REPORT FUNCTIONS VERY VOLATILE- NEED to be verified on how they are supposed to work????
@@ -489,7 +675,7 @@ public class DBHelper {
                 "INNER JOIN address on address.address_id=listing.address_id CROSS JOIN (select address.country," +
                 "address.city,count(*) as totListing from listing INNER JOIN address on " +
                 "address.address_id=listing.address_id GROUP BY address.country,address.city)s ON " +
-                "s.country=address.country AND s.city=address.city GROUP BY user_id,address.country,address.city)t " +
+                "s.country=address.country AND s.city=address.city WHERE isActive=? GROUP BY user_id,address.country,address.city)t " +
                 "WHERE t.numListing >= 0.1*t.totListing GROUP BY t.country ASC,t.city ASC,numListing DESC,t.user_id;";
 
 
@@ -498,6 +684,7 @@ public class DBHelper {
         try {
             createConnection();
             numListings = conn.prepareStatement(sql);
+            numListings.setBoolean(1,true);
             rs = numListings.executeQuery();
             if (rs.next())
                 result = rs.getInt(1);
