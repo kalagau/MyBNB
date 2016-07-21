@@ -12,7 +12,9 @@ public class Listing {
     private String address, postalCode, country, city;
     private Double mainPrice;
     private BigDecimal longitude, latitude;
+    private int numberOfBedrooms;
     private ArrayList<String> characteristics;
+    private boolean hasKitchen;
 
     public Listing(Map listing) {
         this.address = (String)listing.get("address");
@@ -22,6 +24,8 @@ public class Listing {
         this.longitude = BigDecimal.valueOf((Double)listing.get("longitude"));
         this.latitude = BigDecimal.valueOf((Double)listing.get("latitude"));
         this.mainPrice = (Double)listing.get("mainPrice");
+        this.numberOfBedrooms = (int)listing.get("numberOfBedrooms");
+        this.hasKitchen = (boolean)listing.get("hasKitchen");
     }
 
     public Double getMainPrice() {
@@ -54,6 +58,14 @@ public class Listing {
 
     public ArrayList<String> getCharacteristics() {
         return characteristics;
+    }
+
+    public int getNumberOfBedrooms() {
+        return numberOfBedrooms;
+    }
+
+    public boolean hasKitchen() {
+        return hasKitchen;
     }
 
     public void setCharacteristics(ArrayList<String> characteristics) {

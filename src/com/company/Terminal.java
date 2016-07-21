@@ -39,7 +39,7 @@ public class Terminal {
             }else{
                 helper.add("Book a listing", this::selectListingToBook);
                 helper.add("Show my bookings", this::showBooking);
-                helper.add("Delete a booking", this::deleteBooking);
+                helper.add("Cancel a booking", this::deleteBooking);
                 helper.add("Review a listing", this::reviewListing);
                 helper.add("Review a host", this::reviewHost);
             }
@@ -125,8 +125,11 @@ public class Terminal {
         asker.add(new Info("longitude", "Longitude:", DataType.DOUBLE));
         asker.add(new Info("latitude", "Latitude:", DataType.DOUBLE));
         asker.add(new Info("mainPrice", "Price:", DataType.DOUBLE));
+        asker.add(new Info("numberOfBedrooms", "Number of Bedrooms:", DataType.INTEGER));
+        asker.add(new Info("hasKitchen", "Does it have a kitchen? (y/n):", DataType.BOOLEAN));
         Listing listing = new Listing(asker.askQuestions());
 
+        System.out.println("Enter applicable amenities below, separated by commas");
         helper.setQuestions(DBTalker.getListingCharacteristics());
         listing.setCharacteristics(helper.askQuestionsWithMultipleInput());
         DBTalker.createListing(userID, listing);
@@ -240,6 +243,9 @@ public class Terminal {
             asker.add(new Info("firstDate", "First Date (yyyy-mm-dd):", DataType.DATE, ValidatorKeys.FUTURE_START_DATE));
             asker.add(new Info("lastDate", "Last Date (yyyy-mm-dd):", DataType.DATE, ValidatorKeys.FUTURE_END_DATE));
         }
+        if(filters.contains("Minimum Number of Bedrooms")){
+            asker.add(new Info("minNumberOfBedrooms", "Minimum number of bedrooms:", DataType.INTEGER));
+        }
         ListingFilter listingsFilter = new ListingFilter(asker.askQuestions());
         return DBTalker.getListings(listingsFilter);
     }
@@ -251,6 +257,7 @@ public class Terminal {
         helper.add("Price Range");
         helper.add("Address");
         helper.add("Available Date Range");
+        helper.add("Minimum Number of Bedrooms");
         return helper.askQuestionsWithMultipleInput();
     }
 
