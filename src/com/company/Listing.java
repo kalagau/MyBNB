@@ -1,5 +1,6 @@
 package com.company;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -8,16 +9,18 @@ import java.util.Map;
  */
 public class Listing {
 
-    private String address, postalCode, country;
-    private Double longitude, latitude, mainPrice;
+    private String address, postalCode, country, city;
+    private Double mainPrice;
+    private BigDecimal longitude, latitude;
     private ArrayList<String> characteristics;
 
     public Listing(Map listing) {
         this.address = (String)listing.get("address");
         this.postalCode = (String)listing.get("postalCode");
         this.country = (String)listing.get("country");
-        this.longitude = (Double)listing.get("longitude");
-        this.latitude = (Double)listing.get("latitude");
+        this.city = (String)listing.get("city");
+        this.longitude = BigDecimal.valueOf((Double)listing.get("longitude"));
+        this.latitude = BigDecimal.valueOf((Double)listing.get("latitude"));
         this.mainPrice = (Double)listing.get("mainPrice");
     }
 
@@ -37,11 +40,15 @@ public class Listing {
         return country;
     }
 
-    public Double getLongitude() {
+    public String getCity() {
+        return city;
+    }
+
+    public BigDecimal getLongitude() {
         return longitude;
     }
 
-    public Double getLatitude() {
+    public BigDecimal getLatitude() {
         return latitude;
     }
 

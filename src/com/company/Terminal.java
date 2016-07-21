@@ -129,7 +129,7 @@ public class Terminal {
 
         helper.setQuestions(DBTalker.getListingCharacteristics());
         listing.setCharacteristics(helper.askQuestionsWithMultipleInput());
-        DBTalker.createListing(listing);
+        DBTalker.createListing(userID, listing);
     }
 
     private void showMyListingInfo(){

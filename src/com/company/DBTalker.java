@@ -1,17 +1,25 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by Daniel on 2016-07-19.
  */
 public class DBTalker {
 
+    private static String[] characteristics = { "Kitchen", "Internet", "TV", "Essentials", "Shampoo",
+            "Heating", "Air Conditioning", "Washer", "Dryer", "Free Parking on Premises",
+            "Wireless Internet", "Cable TV", "Breakfast", "Pets Allowed", "Family/Kid Friendly",
+            "Suitable for Events", "Smoking Allowed", "Wheelchair Accessible", "Elevator in Building",
+            "Indoor Fireplace", "Buzzer/Wireless Intercom", "Doorman", "Pool", "Hot Tub", "Gym",
+            "24-Hour Check-in", "Hangers", "Iron", "Hair Dryer", "Laptop Friendly Workspace" };
+
     public static ArrayList<String> getListings(ListingFilter filter) {
         return new ArrayList<>();
     }
 
-    public static String createListing(Listing listing){
+    public static String createListing(String userID, Listing listing){
         return "";
     }
 
@@ -20,13 +28,7 @@ public class DBTalker {
     }
 
     public static ArrayList<String> getListingCharacteristics(){
-        ArrayList<String> temp = new ArrayList<>();
-        temp.add("windows");
-        temp.add("kitchen");
-        temp.add("air conditioning");
-        temp.add("free food");
-        temp.add("pizza");
-        return temp;
+        return new ArrayList<>(Arrays.asList(characteristics));
     }
 
     public static ArrayList<String> getHostListings(String userID){
