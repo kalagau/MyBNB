@@ -11,7 +11,7 @@ public class ListingFilter {
 
 
     private String address, postalCode, country;
-    private Double longitude, latitude, lowestPrice, highestPrice, maxDistance;
+    private Double longitude= -1.0, latitude= -1.0, lowestPrice= -1.0, highestPrice= -1.0, maxDistance= -1.0;
     private Date firstDate, lastDate;
 
     public ListingFilter(Map listing) {
@@ -55,6 +55,10 @@ public class ListingFilter {
         return highestPrice;
     }
 
+    public Double getMaxDistance() {
+        return maxDistance;
+    }
+
     public Date getFirstDate() {
         return firstDate;
     }
@@ -62,4 +66,5 @@ public class ListingFilter {
     public Date getLastDate() {
         return lastDate;
     }
+
 }
