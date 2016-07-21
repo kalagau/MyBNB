@@ -1,11 +1,10 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 import com.company.Validators.ValidatorKeys;
 import com.company.Info.DataType;
+import com.company.Review.RevieweeType;
 
 /**
  * Created by Daniel on 2016-07-16.
@@ -36,12 +35,14 @@ public class Terminal {
                 helper.add("Create new listing", this::createListing);
                 helper.add("Show listing information", this::showMyListingInfo);
                 helper.add("Delete a listing", this::deleteListing);
+                helper.add("Review a renter", this::reviewRenter);
             }else{
                 helper.add("Book a listing", this::selectListingToBook);
                 helper.add("Show my bookings", this::showBooking);
                 helper.add("Delete a booking", this::deleteBooking);
+                helper.add("Review a listing", this::reviewListing);
+                helper.add("Review a host", this::reviewHost);
             }
-            helper.add("Create a Review", this::createReview);
             helper.add("Logout", this::logout);
             helper.add("Delete current user", this::deleteUserConfirmation);
             helper.askQuestions();
@@ -205,6 +206,10 @@ public class Terminal {
 //        return listingText.split(":")[0];
     }
 
+    private String getUserID(String userText){
+        return userText.split(":")[1];
+    }
+
     private String getBookingID(String bookingText){
         return "";
 //        return bookingText.split(":")[0];
@@ -249,8 +254,53 @@ public class Terminal {
         return helper.askQuestionsWithMultipleInput();
     }
 
-    private void createReview(){
+    private void reviewHost(){
+        System.out.println("Select a Host:");
+        ArrayList<String> reviewees = DBTalker.getReviewableHosts(userID);
+        if(!reviewees.isEmpty()){
+            helper.setQuestions(reviewees);
+            String selectedRevieweeID = getUserID(helper.askQuestions());
+            createReview(selectedRevieweeID, RevieweeType.HOST);
+        }else
+            printNotFound("reviewable hosts");
+    }
 
+    private void reviewRenter(){
+        System.out.println("Select a Renter:");
+        ArrayList<String> reviewees = DBTalker.getReviewableRenters(userID);
+        if(!reviewees.isEmpty()){
+            helper.setQuestions(reviewees);
+            String selectedRevieweeID = getUserID(helper.askQuestions());
+            createReview(selectedRevieweeID, RevieweeType.RENTER);
+        }else
+            printNotFound("reviewable renters");
+    }
+
+    private void reviewListing(){
+        System.out.println("Select a Listing:");
+        ArrayList<String> reviewees = DBTalker.getReviewableListings(userID);
+        if(!reviewees.isEmpty()){
+            helper.setQuestions(reviewees);
+            String selectedRevieweeID = getUserID(helper.askQuestions());
+            createReview(selectedRevieweeID, RevieweeType.LISTING);
+        }else
+            printNotFound("reviewable listings");
+    }
+
+    private void createReview(String revieweeID, RevieweeType type){
+        System.out.println("Description:");
+        String description = sc.nextLine();
+
+        System.out.println("Rating:");
+        helper.add("1 star");
+        helper.add("2 stars");
+        helper.add("3 stars");
+        helper.add("4 stars");
+        helper.add("5 stars");
+        int rating = Integer.parseInt(helper.askQuestions());
+
+        Review review = new Review(description, revieweeID, rating, type);
+        DBTalker.createReview(userID, review);
     }
 
     private void printNotFound(String items){

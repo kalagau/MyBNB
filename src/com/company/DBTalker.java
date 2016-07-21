@@ -89,12 +89,24 @@ public class DBTalker {
         }
     }
 
-    private static ArrayList<String> getReviewableHosts(String userID){
+    public static ArrayList<String> getReviewableHosts(String userID){
         return new ArrayList<>();
     }
 
-    private static ArrayList<String> getReviewableRenters(String userID){
+    public static ArrayList<String> getReviewableRenters(String userID){
         return new ArrayList<>();
+    }
+
+    public static ArrayList<String> getReviewableListings(String userID){
+        return new ArrayList<>();
+    }
+
+    public static String createReview(String userID, Review review){
+        try { return null; }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
     }
 
     private static void errorOccurred(Exception e){
