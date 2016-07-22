@@ -1,5 +1,6 @@
 package app.objects;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 
 /**
@@ -8,12 +9,12 @@ import java.sql.Date;
 public class CalendarEntry {
 
     private Date date;
-    private double price;
+    private BigDecimal price;
     private boolean isAvailable;
 
     public CalendarEntry(Date date, double price, boolean isAvailable) {
         this.date = date;
-        this.price = price;
+        this.price = BigDecimal.valueOf(price);
         this.isAvailable = isAvailable;
     }
 
@@ -21,7 +22,7 @@ public class CalendarEntry {
         return date;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 

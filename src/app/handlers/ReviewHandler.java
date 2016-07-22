@@ -14,8 +14,8 @@ import java.util.Scanner;
  */
 public class ReviewHandler extends BaseHandler {
 
-    public ReviewHandler(Decider decider, Asker asker, String userID, Scanner sc) {
-        super(decider, asker, userID, sc);
+    public ReviewHandler(Decider decider, Asker asker, String userID, Scanner sc, Terminal tm) {
+        super(decider, asker, userID, sc, tm);
     }
 
     public void reviewHost(){

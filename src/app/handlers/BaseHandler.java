@@ -1,5 +1,6 @@
 package app.handlers;
 
+import app.Terminal;
 import app.modules.Asker;
 import app.modules.Decider;
 
@@ -14,12 +15,14 @@ public abstract class BaseHandler {
     protected Asker asker;
     protected String userID;
     protected Scanner sc;
+    protected Terminal tm;
 
-    public BaseHandler(Decider decider, Asker asker, String userID, Scanner sc) {
+    public BaseHandler(Decider decider, Asker asker, String userID, Scanner sc, Terminal tm) {
         this.decider = decider;
         this.asker = asker;
         this.userID = userID;
         this.sc = sc;
+        this.tm = tm;
     }
 
     public void setUserID(String userID) {

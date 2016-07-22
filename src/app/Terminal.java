@@ -16,6 +16,23 @@ public class Terminal {
 
     private Decider decider;
     private UserHandler userHandler;
+
+    public UserHandler getUserHandler() {
+        return userHandler;
+    }
+
+    public ListingHandler getListingHandler() {
+        return listingHandler;
+    }
+
+    public ReviewHandler getReviewHandler() {
+        return reviewHandler;
+    }
+
+    public BookingHandler getBookingHandler() {
+        return bookingHandler;
+    }
+
     private ListingHandler listingHandler;
     private ReviewHandler reviewHandler;
     private BookingHandler bookingHandler;
@@ -25,9 +42,9 @@ public class Terminal {
         Asker asker = new Asker(sc);
         decider = new Decider(sc);
         userHandler = new UserHandler(decider, asker, "", sc, this);
-        listingHandler = new ListingHandler(decider, asker, userHandler.getUserID(), sc);
-        reviewHandler = new ReviewHandler(decider, asker, userHandler.getUserID(), sc);
-        bookingHandler = new BookingHandler(decider, asker, userHandler.getUserID(), sc, listingHandler);
+        listingHandler = new ListingHandler(decider, asker, userHandler.getUserID(), sc, this);
+        reviewHandler = new ReviewHandler(decider, asker, userHandler.getUserID(), sc, this);
+        bookingHandler = new BookingHandler(decider, asker, userHandler.getUserID(), sc, this);
         startSession();
     }
 
@@ -46,14 +63,16 @@ public class Terminal {
                 decider.add("Create new listing", listingHandler::createListing);
                 decider.add("Show listing information", listingHandler::showMyListingInfo);
                 decider.add("Delete a listing", listingHandler::deleteListing);
+                decider.add("Edit listing price over date range", listingHandler::setListingPrice);
+                decider.add("Edit listing availability", listingHandler::setListingAvailability);
                 decider.add("Review a renter", reviewHandler::reviewRenter);
             }else{
                 decider.add("Book a listing", bookingHandler::selectListingToBook);
                 decider.add("Show my bookings", bookingHandler::showBooking);
-                decider.add("Cancel a booking", bookingHandler::deleteBooking);
                 decider.add("Review a listing", reviewHandler::reviewListing);
                 decider.add("Review a host", reviewHandler::reviewHost);
             }
+            decider.add("Cancel a Booking", bookingHandler::deleteBooking);
             decider.add("Logout", userHandler::logout);
             decider.add("Delete current user", userHandler::deleteUserConfirmation);
             decider.displayOptions();

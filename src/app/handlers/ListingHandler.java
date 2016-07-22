@@ -4,12 +4,16 @@ import app.DBTalker;
 import app.Validators;
 import app.modules.Asker;
 import app.modules.Decider;
+import app.objects.CalendarEntry;
 import app.objects.Info;
 import app.objects.Listing;
 import app.objects.ListingFilter;
 import app.Terminal;
 
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -17,8 +21,8 @@ import java.util.Scanner;
  */
 public class ListingHandler extends BaseHandler {
 
-    public ListingHandler(Decider decider, Asker asker, String userID, Scanner sc) {
-        super(decider, asker, userID, sc);
+    public ListingHandler(Decider decider, Asker asker, String userID, Scanner sc, Terminal tm) {
+        super(decider, asker, userID, sc, tm);
     }
 
     public void createListing(){
@@ -43,8 +47,51 @@ public class ListingHandler extends BaseHandler {
         DBTalker.createListing(userID, listing);
     }
 
-    public void setListingAvailabilityOrPrice(Listing listing){
+    public void setListingPrice(){
+        prepareToProduceCalendarEntries(true);
+    }
 
+    public void setListingAvailability(){
+        prepareToProduceCalendarEntries(false);
+    }
+
+    private void prepareToProduceCalendarEntries(boolean editPrice){
+        String listingID =getIDFromMySelectedListing();
+        asker.add(new Info("startDate", "Starting Date (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.FUTURE_START_DATE));
+        asker.add(new Info("endDate", "Ending Date (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.FUTURE_END_DATE));
+
+        if(editPrice)
+            asker.add(new Info("price", "Price over this time:", Info.DataType.DOUBLE));
+        else
+            asker.add(new Info("isAvailable", "Is this period of time available for rent? (y/n):", Info.DataType.BOOLEAN));
+
+        Map map = asker.askQuestions();
+        Date start = (Date) map.get("startDate");
+        Date end = (Date) map.get("endDate");
+
+        map.putIfAbsent("price", -1);
+        map.putIfAbsent("isAvailable", true);
+
+        double price = (double) map.get("price");
+        boolean isAvailable = (boolean) map.get("isAvailable");
+
+        ArrayList<CalendarEntry> entries = produceCalendarEntries(start, end, price, isAvailable);
+        DBTalker.addCalendarEntries(listingID, entries);
+    }
+
+    public ArrayList<CalendarEntry> produceCalendarEntries(Date start, Date end, double price, boolean isAvailable){
+        ArrayList<CalendarEntry> entries = new ArrayList<>();
+        Calendar startCal = Calendar.getInstance();
+        Calendar endCal = Calendar.getInstance();
+        startCal.setTime(start);
+        endCal.setTime(end);
+
+        while (startCal.before(endCal)){
+            entries.add(new CalendarEntry((Date) startCal.getTime(), price, isAvailable));
+            startCal.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+        return entries;
     }
 
     public void showMyListingInfo(){

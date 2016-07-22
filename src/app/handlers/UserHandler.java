@@ -34,9 +34,8 @@ public class UserHandler extends BaseHandler {
         return isHost;
     }
 
-    public UserHandler(Decider decider, Asker asker, String userID, Scanner sc, Terminal terminal) {
-        super(decider, asker, userID, sc);
-        this.terminal = terminal;
+    public UserHandler(Decider decider, Asker asker, String userID, Scanner sc, Terminal tm) {
+        super(decider, asker, userID, sc, tm);
     }
 
     public void tryToLogin(){

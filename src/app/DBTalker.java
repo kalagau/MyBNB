@@ -1,9 +1,6 @@
 package app;
 
-import app.objects.Listing;
-import app.objects.ListingFilter;
-import app.objects.Review;
-import app.objects.User;
+import app.objects.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,6 +69,14 @@ public class DBTalker {
         }
     }
 
+    public static String createBooking(String userID, String listingID, Rental rental){
+        try { return null; }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
+    }
+
     public static String deleteBooking(String bookingID) {
         try { return null; }
         catch (Exception e) {
@@ -80,7 +85,7 @@ public class DBTalker {
         }
     }
 
-    public static ArrayList<String> getMyBookings(String userID) {
+    public static ArrayList<String> getMyBookings(String userID, boolean isHost) {
         try { return new ArrayList<>(); }
         catch (Exception e) {
             errorOccurred(e);
@@ -89,6 +94,14 @@ public class DBTalker {
     }
 
     public static Listing getListingInfo(String listingID) {
+        try { return null; }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
+    }
+
+    public static Listing addCalendarEntries(String listingID, ArrayList<CalendarEntry> entries) {
         try { return null; }
         catch (Exception e) {
             errorOccurred(e);
