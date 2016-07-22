@@ -1,4 +1,4 @@
-package com.company;
+package app;
 
 import java.sql.Date;
 import java.util.Calendar;

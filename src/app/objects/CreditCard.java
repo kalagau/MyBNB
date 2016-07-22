@@ -1,4 +1,4 @@
-package com.company;
+package app.objects;
 
 import java.util.Map;
 

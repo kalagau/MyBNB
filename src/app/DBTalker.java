@@ -1,4 +1,9 @@
-package com.company;
+package app;
+
+import app.objects.Listing;
+import app.objects.ListingFilter;
+import app.objects.Review;
+import app.objects.User;
 
 import java.util.ArrayList;
 import java.util.Arrays;

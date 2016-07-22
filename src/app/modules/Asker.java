@@ -1,11 +1,8 @@
-package com.company;
+package app.modules;
 
-import sun.util.calendar.BaseCalendar;
+import app.objects.Info;
 
 import java.sql.Date;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,13 +11,13 @@ import java.util.Scanner;
 /**
  * Created by Daniel on 2016-07-18.
  */
-public class InfoHelper {
+public class Asker {
 
     private Scanner sc;
     private ArrayList<Info> questions;
     private Map answers;
 
-    public InfoHelper(Scanner sc) {
+    public Asker(Scanner sc) {
         this.sc = sc;
         this.questions = new ArrayList<>();
         this.answers = new HashMap();

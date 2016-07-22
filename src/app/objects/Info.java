@@ -1,7 +1,8 @@
-package com.company;
+package app.objects;
 
 import java.util.function.Function;
-import com.company.Validators.ValidatorKeys;
+
+import app.Validators;
 
 /**
  * Created by Daniel on 2016-07-18.
@@ -12,7 +13,7 @@ public class Info {
     public DataType type;
     public Function isValid;
 
-    public Info(String key, String text, DataType type, ValidatorKeys validator) {
+    public Info(String key, String text, DataType type, Validators.ValidatorKeys validator) {
         this.key = key;
         this.text = text;
         this.type = type;
@@ -20,6 +21,6 @@ public class Info {
     }
 
     public Info(String key, String text, DataType type) {
-        this(key, text, type, ValidatorKeys.NONE);
+        this(key, text, type, Validators.ValidatorKeys.NONE);
     }
 }

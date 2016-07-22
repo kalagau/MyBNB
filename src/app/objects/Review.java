@@ -1,6 +1,4 @@
-package com.company;
-
-import java.util.Map;
+package app.objects;
 
 /**
  * Created by Daniel on 2016-07-21.
