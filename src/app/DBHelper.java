@@ -1,851 +1,995 @@
-package app;
+        package com.company;
 
-import java.sql.*;
-import java.util.ArrayList;
-
-
-/**
- * Created by Daniel on 2016-07-16.
- */
-public class DBHelper {
-    private static final String dbClassName = "com.mysql.jdbc.Driver";
-    private static final String CONNECTION = "jdbc:mysql://127.0.0.1/mydb";
-    private static boolean active = false;
-    private static Connection conn;
-    private static String dateSQL = "select * from \n" +
-            "(select adddate('1970-01-01',t4.i*10000 + t3.i*1000 + t2.i*100 + t1.i*10 + t0.i) selected_date from\n" +
-            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,\n" +
-            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t1,\n" +
-            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t2,\n" +
-            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t3,\n" +
-            " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t4) v\n" +
-            "where selected_date between ? and ?";
-
-    public static void createConnection() throws ClassNotFoundException, SQLException {
-        //Register JDBC driver
-        if (active)
-            return;
-        try {
-            Class.forName(dbClassName);
-        } catch (ClassNotFoundException e) {
-            throw e;
-        }
-        //Database credentials
-        final String USER = "root";
-        final String PASS = "";
-        try {
-            //Establish connection
-            conn = DriverManager.getConnection(CONNECTION, USER, PASS);
-        } catch (SQLException e) {
-            throw e;
-        }
-        active = !active;
-    }
-
-    public static void closeConnection() throws SQLException {
-        if (!active)
-            return;
-        try {
-            //Establish connection
-            conn.close();
-        } catch (SQLException e) {
-            System.err.println("Connection error occured!");
-            throw e;
-        }
-
-    }
-
-    public static int activeUser(User user) throws Exception {
-        int userId = -1;
-        PreparedStatement usrStmt = null;
-        PreparedStatement addrStmt =  null;
-        ResultSet rs = null;
-        try {
-            createConnection();
-            usrStmt = conn.prepareStatement("SELECT SIN,address_id FROM user where SIN=?;");
-
-            //WARNINBGGGGGG
-            usrStmt.setString(1, user.getSIN());
+        import java.sql.*;
+        import java.util.ArrayList;
 
 
-            rs = usrStmt.executeQuery();
-            while (rs.next()) {
-                int addr = rs.getInt("address_id");
-                userId = rs.getInt("user_id");
-                addrStmt = conn.prepareStatement("SELECT * FROM address where address_id=? and country =? ");
-                addrStmt.setInt(1, addr);
-                //nonexistant statement
-                addrStmt.setString(2, user.getCountry());
-                ResultSet addrSet = addrStmt.executeQuery();
-                if (!addrSet.next())
-                    userId = -1;
-                addrStmt.close();
-            }
+        /**
+         * Created by Daniel on 2016-07-16.
+         */
+        public class DBHelper {
+            private static final String dbClassName = "com.mysql.jdbc.Driver";
+            private static final String CONNECTION = "jdbc:mysql://127.0.0.1/mydb";
+            private static boolean active = false;
+            private static Connection conn;
+            private static String dateSQL = "select * from \n" +
+                    "(select adddate('1970-01-01',t4.i*10000 + t3.i*1000 + t2.i*100 + t1.i*10 + t0.i) selected_date from\n" +
+                    " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,\n" +
+                    " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t1,\n" +
+                    " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t2,\n" +
+                    " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t3,\n" +
+                    " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t4) v\n" +
+                    "where selected_date between ? and ?";
 
-            rs.close();
-            addrStmt.close();
-
-            closeConnection();
-        } catch (SQLException e) {
-            System.err.println("Connection error occured!");
-            throw e;
-        } catch(Exception e) {
-            throw e;
-        } finally{
-            try {
-                addrStmt.close();
-                rs.close();
-                usrStmt.close();
-            }catch (Exception e){
-                int a = 0;
-            }
-        }
-
-
-        return userId;
-    }
-
-    public static String createNewUser(User user) throws Exception {
-        int addrId = -1;
-        int userId = -1;
-        PreparedStatement addrStmt= null;
-        PreparedStatement usrStmt= null;
-        PreparedStatement card= null;
-        PreparedStatement stmt= null;
-        ResultSet rs= null;
-        ResultSet rsUser= null;
-        ResultSet rsIns= null;
-
-
-        try {
-            userId = activeUser(user);
-
-            createConnection();
-            if (userId < 0) {
-                //Execute a query
-                addrStmt = conn.prepareStatement("INSERT INTO  address (pCode, country, city)  VALUES (?,?,?);",
-                        PreparedStatement.RETURN_GENERATED_KEYS);
-                usrStmt = conn.prepareStatement("INSERT INTO user(address_id,occupation,name,DOB,SIN)  VALUES (?,?,?,?,?);",
-                        PreparedStatement.RETURN_GENERATED_KEYS);
-                addrStmt.setString(1, user.getPostalCode());
-                addrStmt.setString(2, user.getCountry());
-                addrStmt.setString(3, user.city());
-                int success = addrStmt.executeUpdate();
-                rs = stmt.getGeneratedKeys();
-                if (success > 0 && rs.next()) {
-                    addrId = (rs.getInt(1));
+            public static void createConnection() throws ClassNotFoundException, SQLException {
+                //Register JDBC driver
+                if (active)
+                    return;
+                try {
+                    Class.forName(dbClassName);
+                } catch (ClassNotFoundException e) {
+                    throw e;
                 }
-                addrStmt.close();
-                rs.close();
-                if (addrId > 0) {
-                    usrStmt.setInt(1, addrId);
-                    usrStmt.setString(2, user.getOccupation());
-                    usrStmt.setString(3, user.getName());
-                    //VERIFY DATE PRIOR TO HERE
-                    usrStmt.setDate(4, user.getDOB());
-                    //ERROR CONVERT TO INT BEOFRE HERE
-                    usrStmt.setString(5, user.getSIN());
-                    int secondSuccess = usrStmt.executeUpdate();
-                    rsUser = stmt.getGeneratedKeys();
-                    if (secondSuccess > 0 && rsUser.next()) {
-                        userId = (rsUser.getInt(1));
-                    }
-                    usrStmt.close();
-                    rsUser.close();
-
-
+                //Database credentials
+                final String USER = "root";
+                final String PASS = "";
+                try {
+                    //Establish connection
+                    conn = DriverManager.getConnection(CONNECTION, USER, PASS);
+                } catch (SQLException e) {
+                    throw e;
                 }
+                active = !active;
             }
 
+            public static void closeConnection() throws SQLException {
+                if (!active)
+                    return;
+                try {
+                    //Establish connection
+                    conn.close();
+                } catch (SQLException e) {
+                    System.err.println("Connection error occured!");
+                    throw e;
+                }
 
-            if (userId > 0) {
-                if (user.isRenter()) {
-                    card = conn.prepareStatement("INSERT INTO  credit_card (card_number, name, CCV,expiry_date)  VALUES (?,?,?,?);");
-                    card.setString(1, user.getCreditCard().getNumber());
-                    card.setString(2, user.getName());
-                    card.setString(3, user.getCreditCard().getCCV());
-                    card.setDate(4, user.getCreditCard().getExpiryDate());
-                    int success = card.executeUpdate();
-                    card.close();
-                    if (success > 0) {
-                        stmt = conn.prepareStatement("INSERT INTO  renter (user_id,card_number,isActive)  VALUES (?,?,?);",
-                                PreparedStatement.RETURN_GENERATED_KEYS);
-                        stmt.setInt(1, userId);
-                        stmt.setString(2, user.getCreditCard().getNumber());
-                        stmt.setBoolean(3, true);
-                        int complete = stmt.executeUpdate();
-                        rsIns = stmt.getGeneratedKeys();
-                        if (complete > 0 && rsIns.next()) {
-                            userId = (rsIns.getInt(1));
-                        } else {
+            }
+
+            public static int activeUser(User user) throws Exception {
+                int userId = -1;
+                PreparedStatement usrStmt = null;
+                PreparedStatement addrStmt =  null;
+                ResultSet rs = null;
+                try {
+                    createConnection();
+                    usrStmt = conn.prepareStatement("SELECT SIN,address_id FROM user where SIN=?;");
+
+                    //WARNINBGGGGGG
+                    usrStmt.setString(1, user.getSIN());
+
+
+                    rs = usrStmt.executeQuery();
+                    while (rs.next()) {
+                        int addr = rs.getInt("address_id");
+                        userId = rs.getInt("user_id");
+                        addrStmt = conn.prepareStatement("SELECT * FROM address where address_id=? and country =? ");
+                        addrStmt.setInt(1, addr);
+                        //nonexistant statement
+                        addrStmt.setString(2, user.getCountry());
+                        ResultSet addrSet = addrStmt.executeQuery();
+                        if (!addrSet.next())
                             userId = -1;
+                        addrStmt.close();
+                    }
+
+                    rs.close();
+                    addrStmt.close();
+
+                    closeConnection();
+                } catch (SQLException e) {
+                    System.err.println("Connection error occured!");
+                    throw e;
+                } catch(Exception e) {
+                    throw e;
+                } finally{
+                    try {
+                        addrStmt.close();
+                        rs.close();
+                        usrStmt.close();
+                    }catch (Exception e){
+                        int a = 0;
+                    }
+                }
+
+
+                return userId;
+            }
+
+            public static String createNewUser(User user) throws Exception {
+                int addrId = -1;
+                int userId = -1;
+                PreparedStatement addrStmt= null;
+                PreparedStatement usrStmt= null;
+                PreparedStatement card= null;
+                PreparedStatement stmt= null;
+                ResultSet rs= null;
+                ResultSet rsUser= null;
+                ResultSet rsIns= null;
+
+
+                try {
+                    userId = activeUser(user);
+
+                    createConnection();
+                    if (userId < 0) {
+                        //Execute a query
+                        addrStmt = conn.prepareStatement("INSERT INTO  address (pCode, country, city)  VALUES (?,?,?);",
+                                PreparedStatement.RETURN_GENERATED_KEYS);
+                        usrStmt = conn.prepareStatement("INSERT INTO user(address_id,occupation,name,DOB,SIN)  VALUES (?,?,?,?,?);",
+                                PreparedStatement.RETURN_GENERATED_KEYS);
+                        addrStmt.setString(1, user.getPostalCode());
+                        addrStmt.setString(2, user.getCountry());
+                        addrStmt.setString(3, user.city());
+                        int success = addrStmt.executeUpdate();
+                         rs = stmt.getGeneratedKeys();
+                        if (success > 0 && rs.next()) {
+                            addrId = (rs.getInt(1));
                         }
-                        rsIns.close();
+                        addrStmt.close();
+                        rs.close();
+                        if (addrId > 0) {
+                            usrStmt.setInt(1, addrId);
+                            usrStmt.setString(2, user.getOccupation());
+                            usrStmt.setString(3, user.getName());
+                            //VERIFY DATE PRIOR TO HERE
+                            usrStmt.setDate(4, user.getDOB());
+                            //ERROR CONVERT TO INT BEOFRE HERE
+                            usrStmt.setString(5, user.getSIN());
+                            int secondSuccess = usrStmt.executeUpdate();
+                            rsUser = stmt.getGeneratedKeys();
+                            if (secondSuccess > 0 && rsUser.next()) {
+                                userId = (rsUser.getInt(1));
+                            }
+                            usrStmt.close();
+                            rsUser.close();
+
+
+                        }
+                    }
+
+
+                    if (userId > 0) {
+                        if (user.isRenter()) {
+                            card = conn.prepareStatement("INSERT INTO  credit_card (card_number, name, CCV,expiry_date)  VALUES (?,?,?,?);");
+                            card.setString(1, user.getCreditCard().getNumber());
+                            card.setString(2, user.getName());
+                            card.setString(3, user.getCreditCard().getCCV());
+                            card.setDate(4, user.getCreditCard().getExpiryDate());
+                            int success = card.executeUpdate();
+                            card.close();
+                            if (success > 0) {
+                                stmt = conn.prepareStatement("INSERT INTO  renter (user_id,card_number,isActive)  VALUES (?,?,?);",
+                                        PreparedStatement.RETURN_GENERATED_KEYS);
+                                stmt.setInt(1, userId);
+                                stmt.setString(2, user.getCreditCard().getNumber());
+                                stmt.setBoolean(3, true);
+                                int complete = stmt.executeUpdate();
+                                rsIns = stmt.getGeneratedKeys();
+                                if (complete > 0 && rsIns.next()) {
+                                    userId = (rsIns.getInt(1));
+                                } else {
+                                    userId = -1;
+                                }
+                                rsIns.close();
+                                stmt.close();
+                            } else {
+                                userId = -1;
+                            }
+
+                        } else {
+                            stmt = conn.prepareStatement("INSERT INTO  host (pCode, country, city)  VALUES (?,?,?);",
+                                    PreparedStatement.RETURN_GENERATED_KEYS);
+                            stmt.setInt(1, userId);
+                            stmt.setBoolean(2, true);
+                            int complete = stmt.executeUpdate();
+                            rsIns = stmt.getGeneratedKeys();
+                            if (complete > 0 && rsIns.next()) {
+                                userId = (rsIns.getInt(1));
+                            } else {
+                                userId = -1;
+                            }
+                            rsIns.close();
+                            stmt.close();
+                        }
+                    }
+
+                    closeConnection();
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try {
+
+                        addrStmt.close();
+                        usrStmt.close();
+                        card.close();
                         stmt.close();
-                    } else {
-                        userId = -1;
+                        rs.close();
+                        rsUser.close();
+                        rsIns.close();
+                    }catch (Exception e){
+                        int a =0;
                     }
 
-                } else {
-                    stmt = conn.prepareStatement("INSERT INTO  host (pCode, country, city)  VALUES (?,?,?);",
+                }
+
+
+
+                return String.valueOf(userId);
+            }
+
+            public static String deleteUser(String userID) throws Exception{
+                boolean cleanDelete = true;
+                PreparedStatement deleteUser = null;
+                PreparedStatement updateRenter = null;
+                PreparedStatement updateHost = null;
+                PreparedStatement updateListings = null;
+                PreparedStatement updateRental = null;
+                PreparedStatement updateCalendar = null;
+
+                try {
+                    createConnection();
+
+                    deleteUser = conn.prepareStatement("DELETE FROM user where user_id =? ;");
+                    updateRenter = conn.prepareStatement("UPDATE  renter SET  isActive=?  where user_id =? ;");
+                    updateHost = conn.prepareStatement("UPDATE  host SET  isActive=?  where user_id =? ;");
+                    updateListings = conn.prepareStatement("UPDATE listing INNER JOIN host ON listing.user_id=host.user_id SET listing.isActive =? where listing.isActive =? AND host.user_id =?;");
+                    updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET cancelled_By =?,cancelled_On = CURDATE() WHERE host.user_id=? AND listing.isActive =? AND rental.end_date >= CURDATE();");
+                    updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET isAvailable = ? WHERE host.user_id=? AND listing.isActive =? AND calendar_entry.date >= CURDATE();");
+                    deleteUser.setInt(1, Integer.parseInt(userID));
+                    updateRenter.setBoolean(1,false);
+                    updateRenter.setInt(2, Integer.parseInt(userID));
+                    updateHost.setBoolean(1,false);
+                    updateHost.setInt(2, Integer.parseInt(userID));
+                    updateListings.setBoolean(1,false);
+                    updateListings.setBoolean(2,true);
+                    updateListings.setInt(3,Integer.parseInt(userID));
+                    if(updateListings.executeUpdate() < 0)
+                        cleanDelete = false;
+                    updateRental.setInt(1,1);
+                    //updateRental.setBoolean(2,false);
+                    updateRental.setInt(2,Integer.parseInt(userID));
+                    updateRental.setBoolean(3,true);
+                    if(updateRental.executeUpdate() < 0)
+                        cleanDelete = false;
+                    updateCalendar.setBoolean(1,false);
+                    updateCalendar.setInt(2,Integer.parseInt(userID));
+                    updateCalendar.setBoolean(3,true);
+                    if(updateCalendar.executeUpdate() < 0)
+                        cleanDelete = false;
+
+                    if(cleanDelete){
+                        //NEED to determine account being deleted
+                        if(updateRenter.executeUpdate() < 0)
+                            cleanDelete = false;
+                        if(updateHost.executeUpdate() < 0)
+                            cleanDelete = false;
+                        if (cleanDelete) {
+                            int a = deleteUser.executeUpdate();
+
+                        }
+                    }
+                    deleteUser.close();
+                    updateHost.close();
+                    updateRenter.close();
+                    updateListings.close();
+                    updateRental.close();
+                    updateCalendar.close();
+                    closeConnection();
+                } catch (Exception e) {
+                    throw e;
+                }finally{
+                    try{
+                        deleteUser.close();
+                        updateHost.close();
+                        updateRenter.close();
+                        updateListings.close();
+                        updateRental.close();
+                        updateCalendar.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+
+
+                return String.valueOf(cleanDelete);
+            }
+
+
+
+            public static ArrayList<String> getAllHostsNamesAndIDs() throws Exception{
+                ArrayList<String> list = new ArrayList<String>();
+                PreparedStatement hostData = null;
+                ResultSet rs = null;
+
+                try {
+                    createConnection();
+                    hostData = conn.prepareStatement("SELECT host.user_id,user.name FROM host INNER JOIN user ON user.user_id=host.user_id;");
+                    rs = hostData.executeQuery();
+                    while (rs.next())
+                        list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+
+                    rs.close();
+                    hostData.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try{
+                        rs.close();
+                        hostData.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                return list;
+            }
+
+            public static ArrayList<String> getAllRentersNamesAndIDs() throws Exception{
+                ArrayList<String> list = new ArrayList<String>();
+                PreparedStatement renterData = null;
+                ResultSet rs = null;
+                try {
+                    createConnection();
+                    renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=renter.user_id;");
+                    rs = renterData.executeQuery();
+                    while (rs.next())
+                        list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+
+                    rs.close();
+                    renterData.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try{
+                        rs.close();
+                        renterData.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                return list;
+            }
+            public static String createListing(Listing listing,String userID) throws Exception{
+
+                PreparedStatement createListing = null;
+                PreparedStatement createAddress = null;
+                PreparedStatement createLocation = null;
+                ResultSet rsAddr = null;
+                ResultSet rsLoc = null;
+                ResultSet rs = null;
+                int addrId = -1;
+                int locId = -1;
+                int listingId = -1;
+                String sql = "INSERT INTO listing (location_id, address_id, type, num_bedrooms #%#%# )  VALUES (?,?,?,?";
+                String colNames ="";
+                int cCount = 0;
+
+                for (int i = 0; i < listing.getCharacteristics().size(); i++) {
+                    colNames += ", " + listing.getCharacteristics().get(i);
+                    sql += ",?";
+                    cCount++;
+                }
+                sql.replace("#%#%#",colNames);
+                sql+= ");";
+
+
+                try{
+                    //needs to be implemented...
+                    if (commercialCheck(Integer.parseInt(userID),listing.getCountry(),listing.getCity())){
+                        return "You have exceeded the max number of acceptable listings in the specified location";
+                    }
+                    createConnection();
+                    createAddress = conn.prepareStatement("INSERT INTO  address (pCode, country, city)  VALUES (?,?,?);",
                             PreparedStatement.RETURN_GENERATED_KEYS);
-                    stmt.setInt(1, userId);
-                    stmt.setBoolean(2, true);
-                    int complete = stmt.executeUpdate();
-                    rsIns = stmt.getGeneratedKeys();
-                    if (complete > 0 && rsIns.next()) {
-                        userId = (rsIns.getInt(1));
-                    } else {
-                        userId = -1;
+                    createAddress.setString(1,listing.getPostalCode());
+                    createAddress.setString(2,listing.getCity());
+                    createLocation = conn.prepareStatement("INSERT INTO location (latitude, longitude)  VALUES (?,?);",
+                            PreparedStatement.RETURN_GENERATED_KEYS);
+                    createLocation.setBigDecimal(1, listing.getLatitude());
+                    createLocation.setBigDecimal(2, listing.getLongitude());
+                    int checkAddr = createAddress.executeUpdate();
+                    int checkLoc = createLocation.executeUpdate();
+                    if (checkAddr >0 && checkLoc > 0){
+                        rsAddr = createAddress.getGeneratedKeys();
+                        rsLoc = createLocation.getGeneratedKeys();
+                        if (rsAddr.next() && rsLoc.next()) {
+                            addrId = (rsAddr.getInt(1));
+                            locId = (rsLoc.getInt(1));
+
+                        }
+                        rsAddr.close();
+                        rsLoc.close();
                     }
-                    rsIns.close();
-                    stmt.close();
+                    if (addrId != -1 && locId != -1 ){
+                        createListing = conn.prepareStatement(sql,PreparedStatement.RETURN_GENERATED_KEYS);
+                        createListing.setInt(1,Integer.parseInt(userID));
+                        createListing.setInt(3,addrId);
+                        createListing.setInt(2,locId);
+                        createListing.setString(4, listing.getListingType());
+                        createListing.setInt(5, listing.getNumBedrooms());
+                        for (int i = 6; i <= 5+cCount; i++) {
+                            createListing.setBoolean(i, true);
+
+                        }
+                        int result = createListing.executeUpdate();
+                        rs = createListing.getGeneratedKeys();
+
+                        if (result > 0 && rs.next()){
+                            listingId = rs.getInt(1);
+                        }
+                        createListing.close();
+                        rs.close();
+
+                    }
+                    closeConnection();
+                    createAddress.close();
+                    createLocation.close();
+
+                }catch (Exception e){
+                    throw e;
+                }finally {
+                    try  {
+                        createAddress.close();
+                        createLocation.close();
+                        rsAddr.close();
+                        rsLoc.close();
+                        createListing.close();
+                        rs.close();
+                    } catch (Exception e){
+                        int a =0;
+                    }
+                }
+
+                return String.valueOf(listingId);
+            }
+
+            public static String deleteListing(String listingID) throws Exception{
+                boolean cleanDelete = true;
+                PreparedStatement updateListing = null;
+                PreparedStatement updateRental = null;
+                PreparedStatement updateCalendar = null;
+
+                try {
+                    createConnection();
+
+                    updateListing = conn.prepareStatement("UPDATE listing SET listing.isActive =? where listing.isActive =? AND listing.listing_id =?;");
+                    updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id  SET cancelled_By =?,cancelled_On = CURDATE() WHERE listing.isActive =? AND rental.end_date >= CURDATE();");
+                    updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id SET isAvailable = ? WHERE listing.isActive =? AND calendar_entry.date >= CURDATE();");
+
+                    updateListing.setBoolean(1,false);
+                    updateListing.setBoolean(2,true);
+                    updateListing.setInt(3,Integer.parseInt(listingID));
+                    if(updateListing.executeUpdate() < 0)
+                        cleanDelete = false;
+                    updateRental.setInt(1,1);
+                    //updateRental.setBoolean(2,false);
+                    //updateRental.setInt(2,Integer.parseInt(userID));
+                    updateRental.setBoolean(2,true);
+                    if(updateRental.executeUpdate() < 0)
+                        cleanDelete = false;
+                    updateCalendar.setBoolean(1,false);
+                    updateCalendar.setBoolean(2,true);
+                    if(updateCalendar.executeUpdate() < 0)
+                        cleanDelete = false;
+
+
+
+                    updateListing.close();
+                    updateRental.close();
+                    updateCalendar.close();
+                    closeConnection();
+                } catch (Exception e) {
+                    throw e;
+                }finally{
+                    try{
+
+                        updateListing.close();
+                        updateRental.close();
+                        updateCalendar.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                    return String.valueOf(cleanDelete);
+            }
+
+
+            public static boolean commercialCheck(int userID, String country, String city) throws Exception{
+                PreparedStatement numListings = null;
+                ResultSet rs = null;
+                String sql = "select * from " +
+                        "(select address.country,address.city,user_id, count(*) as numListing, s.totListing from listing " +
+                        "INNER JOIN address on address.address_id=listing.address_id CROSS JOIN (select address.country,address.city,count(*) as totListing from listing " +
+                        "INNER JOIN address on address.address_id=listing.address_id GROUP BY address.country,address.city)s ON s.country=address.country AND s.city=address.city " +
+                        "WHERE user_id=? and isActive=? address.country=? and address.city =? GROUP BY user_id,address.country,address.city)t " +
+                        "WHERE t.numListing >= 0.1*t.totListing and t.numListing >= 5;";
+
+
+
+                boolean result = false;
+                try {
+                    createConnection();
+                    numListings = conn.prepareStatement(sql);
+                    numListings.setInt(1,userID);
+                    numListings.setBoolean(2,true);
+                    numListings.setString(3,country);
+                    numListings.setString(4,city);
+                    rs = numListings.executeQuery();
+                    if (rs.next())
+                        result = true;
+
+                    rs.close();
+                    numListings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally{
+                    try{
+                        rs.close();
+                        numListings.close();
+                    }catch (Exception e){
+                        int a =0;
+                    }
+                }
+                return result;
+            }
+
+            public static ArrayList<String> getHostListings(String userID) throws Exception {
+                ArrayList<String> list = new ArrayList<String>();
+                PreparedStatement listings = null;
+                ResultSet rs = null;
+                try {
+                    createConnection();
+                    listings = conn.prepareStatement("SELECT listing_id type,address.city,address.country,address.postal_code FROM listing " +
+                            "INNER JOIN address ON listing.address_id=address.address_id WHERE listing.user_id=?;");
+                    listings.setInt(1,Integer.parseInt(userID));
+                    rs = listings.executeQuery();
+                    while (rs.next())
+                        list.add(String.format("%d:Type:%s:Country:%s:City:%s:Postal Code:%s",rs.getInt("listing_id"),
+                                rs.getString("type"),rs.getString("address.country"),rs.getString("address.city"),rs.getString("address.pCode")));
+
+
+                    rs.close();
+                    listings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try{
+                        rs.close();
+                        listings.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                return list;
+            }
+
+            public static ArrayList<String> getRenterBookings(String userID) throws Exception {
+                ArrayList<String> list = new ArrayList<String>();
+                PreparedStatement listings = null;
+                ResultSet rs = null;
+                try {
+                    createConnection();
+                    listings = conn.prepareStatement("SELECT rental_id,listing.listing_id,address.city,address.country FROM rental " +
+                            "INNER JOIN listing ON listing.listing_id=rental.listing_id INNER JOIN address ON" +
+                            " listing.address_id=address.address_id WHERE rental.user_id=?;");
+                    listings.setInt(1,Integer.parseInt(userID));
+                    rs = listings.executeQuery();
+                    while (rs.next())
+                        list.add(String.format("%d:Listing:%s:Country:%s:City:%s:Postal Code:%s",rs.getInt("rental_id")
+                                ,rs.getInt("listing.listing_id"), rs.getString("address.country"),rs.getString("address.city")));
+
+
+                    rs.close();
+                    listings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try{
+                        rs.close();
+                        listings.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                return list;
+            }
+
+
+            public static Listing getListingInfo(String listingID) throws Exception{
+                Listing listing = null;
+                PreparedStatement listings = null;
+                ResultSet rs = null;
+                try {
+                    createConnection();
+                    listings = conn.prepareStatement("SELECT * from listing  WHERE listing_id=?;");
+                    listings.setInt(1,Integer.parseInt(listingID));
+                    rs = listings.executeQuery();
+                    if (rs.next())
+                        rs.getMetaData().getColumnCount();
+
+
+
+
+                    rs.close();
+                    listings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try{
+                        rs.close();
+                        listings.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                return listing;
+            }
+
+
+            public static ArrayList<String> getReviewableHosts(String userID) throws Exception{
+                ArrayList<String> list = new ArrayList<String>();
+                PreparedStatement listings = null;
+                ResultSet rs = null;
+                try {
+                    createConnection();
+                    listings = conn.prepareStatement("SELECT rental_id,listing.listing_id,listing.user_id FROM rental " +
+                            "INNER JOIN listing ON listing.listing_id=rental.listing_id INNER JOIN address ON" +
+                            " listing.address_id=address.address_id WHERE rental.user_id=? AND rental.end_date >= CURDATE() - INTERVAL 30 DAY;");
+                    listings.setInt(1,Integer.parseInt(userID));
+                    rs = listings.executeQuery();
+                    while (rs.next())
+                        list.add(String.format("%d:Rental:%d:Listing:%d:Host",rs.getInt("rental_id")
+                                ,rs.getInt("listing.listing_id"),rs.getInt("listing.user_id")));
+
+
+                    rs.close();
+                    listings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try{
+                        rs.close();
+                        listings.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                return list;
+            }
+
+            public static ArrayList<String> getReviewableRenters(String userID) throws Exception{
+
+                ArrayList<String> list = new ArrayList<String>();
+                PreparedStatement listings = null;
+                ResultSet rs = null;
+                try {
+                    createConnection();
+                    listings = conn.prepareStatement("SELECT rental_id,listing.listing_id,rental.user_id FROM rental " +
+                            "INNER JOIN listing ON listing.listing_id=rental.listing_id INNER JOIN address ON" +
+                            " listing.listing_id=address.address_id WHERE listing.user_id=? AND rental.end_date >= CURDATE() - INTERVAL 30 DAY;");
+                    listings.setInt(1,Integer.parseInt(userID));
+                    rs = listings.executeQuery();
+                    while (rs.next())
+                        list.add(String.format("%d:Rental:%d:Listing:%d:Renter",rs.getInt("rental_id")
+                                ,rs.getInt("listing.listing_id"),rs.getInt("rental.user_id")));
+
+
+                    rs.close();
+                    listings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try{
+                        rs.close();
+                        listings.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                return list;
+            }
+
+            public static ArrayList<String> getReviewableListings(String userID) throws Exception{
+                ArrayList<String> list = new ArrayList<String>();
+                PreparedStatement listings = null;
+                ResultSet rs = null;
+                try {
+                    createConnection();
+                    listings = conn.prepareStatement("SELECT rental_id,listing.listing_id FROM rental " +
+                            "INNER JOIN listing ON listing.listing_id=rental.listing_id INNER JOIN address ON" +
+                            " listing.address_id=address.address_id WHERE rental.user_id=? AND rental.end_date >= CURDATE() - INTERVAL 30 DAY;");
+                    listings.setInt(1,Integer.parseInt(userID));
+                    rs = listings.executeQuery();
+                    while (rs.next())
+                        list.add(String.format("%d:Rental:%d:Listing:%d:Renter",rs.getInt("rental_id")
+                                ,rs.getInt("listing.listing_id"),rs.getInt("rental.user_id")));
+
+
+                    rs.close();
+                    listings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally {
+                    try{
+                        rs.close();
+                        listings.close();
+                    }catch (Exception e){
+                        int a=0;
+                    }
+                }
+                return list;
+            }
+
+
+            public static String createReview(String userID, Review review){
+                try { return null; }
+                catch (Exception e) {
+                    errorOccurred(e);
+                    return null;
                 }
             }
 
-            closeConnection();
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            try {
-
-                addrStmt.close();
-                usrStmt.close();
-                card.close();
-                stmt.close();
-                rs.close();
-                rsUser.close();
-                rsIns.close();
-            }catch (Exception e){
-                int a =0;
-            }
-
-        }
+        //REPORT FUNCTIONS VERY VOLATILE- NEED to be verified on how they are supposed to work????
 
 
+            //SQL UPDATED
+            public static int reportRentalsByDate(java.sql.Date startDate, java.sql.Date endDate,boolean postal) throws Exception{
+                PreparedStatement numListings = null;
+                ResultSet rs = null;
+                String sql = "SELECT address.city, COUNT(*) as numRentals FROM rental INNER JOIN listing ON" +
+                        " rental.listing_id=listing.listing_id INNER JOIN address ON listing.address_id=address.address_id" +
+                        " where rental.start_date >= ? and rental.start_date <=? GROUP BY address.city;";
+                if (postal)
+                    sql = "SELECT address.city, address.pCode, COUNT(*) as numRentals FROM rental INNER JOIN listing ON" +
+                            " rental.listing_id=listing.listing_id INNER JOIN address ON" +
+                            " listing.address_id=address.address_id where rental.start_date >= ? " +
+                            "and rental.start_date <=? GROUP BY address.city, address.pCode;";
+                int result = -1;
+                try {
+                    createConnection();
+                    numListings = conn.prepareStatement(sql);
+                    numListings.setDate(1,startDate);
+                    numListings.setDate(2,endDate);
+                    rs = numListings.executeQuery();
+                    if (rs.next())
+                        result = rs.getInt(1);
 
-        return String.valueOf(userId);
-    }
+                    rs.close();
+                    numListings.close();
+                    closeConnection();
 
-    public static String deleteUser(String userID) throws Exception{
-        boolean cleanDelete = true;
-        PreparedStatement deleteUser = null;
-        PreparedStatement updateRenter = null;
-        PreparedStatement updateHost = null;
-        PreparedStatement updateListings = null;
-        PreparedStatement updateRental = null;
-        PreparedStatement updateCalendar = null;
-
-        try {
-            createConnection();
-
-            deleteUser = conn.prepareStatement("DELETE FROM user where user_id =? ;");
-            updateRenter = conn.prepareStatement("UPDATE  renter SET  isActive=?  where user_id =? ;");
-            updateHost = conn.prepareStatement("UPDATE  host SET  isActive=?  where user_id =? ;");
-            updateListings = conn.prepareStatement("UPDATE listing INNER JOIN host ON listing.user_id=host.user_id SET listing.isActive =? where listing.isActive =? AND host.user_id =?;");
-            updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET cancelled_By =?,cancelled_On = CURDATE() WHERE host.user_id=? AND listing.isActive =? AND rental.end_date >= CURDATE();");
-            updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET isAvailable = ? WHERE host.user_id=? AND listing.isActive =? AND calendar_entry.date >= CURDATE();");
-            deleteUser.setInt(1, Integer.parseInt(userID));
-            updateRenter.setBoolean(1,false);
-            updateRenter.setInt(2, Integer.parseInt(userID));
-            updateHost.setBoolean(1,false);
-            updateHost.setInt(2, Integer.parseInt(userID));
-            updateListings.setBoolean(1,false);
-            updateListings.setBoolean(2,true);
-            updateListings.setInt(3,Integer.parseInt(userID));
-            if(updateListings.executeUpdate() < 0)
-                cleanDelete = false;
-            updateRental.setInt(1,1);
-            //updateRental.setBoolean(2,false);
-            updateRental.setInt(2,Integer.parseInt(userID));
-            updateRental.setBoolean(3,true);
-            if(updateRental.executeUpdate() < 0)
-                cleanDelete = false;
-            updateCalendar.setBoolean(1,false);
-            updateCalendar.setInt(2,Integer.parseInt(userID));
-            updateCalendar.setBoolean(3,true);
-            if(updateCalendar.executeUpdate() < 0)
-                cleanDelete = false;
-
-            if(cleanDelete){
-                //NEED to determine account being deleted
-                if(updateRenter.executeUpdate() < 0)
-                    cleanDelete = false;
-                if(updateHost.executeUpdate() < 0)
-                    cleanDelete = false;
-                if (cleanDelete) {
-                    int a = deleteUser.executeUpdate();
-
+                } catch (Exception e) {
+                    throw e;
+                } finally{
+                    try{
+                        rs.close();
+                        numListings.close();
+                    }catch (Exception e){
+                        int a =0;
+                    }
                 }
+                return result;
             }
-            deleteUser.close();
-            updateHost.close();
-            updateRenter.close();
-            updateListings.close();
-            updateRental.close();
-            updateCalendar.close();
-            closeConnection();
-        } catch (Exception e) {
-            throw e;
-        }finally{
-            try{
-                deleteUser.close();
-                updateHost.close();
-                updateRenter.close();
-                updateListings.close();
-                updateRental.close();
-                updateCalendar.close();
-            }catch (Exception e){
-                int a=0;
-            }
-        }
 
 
-        return String.valueOf(cleanDelete);
-    }
+            public static int reportListings(int type) throws Exception{
+                PreparedStatement numListings = null;
+                ResultSet rs = null;
+                String sql = "SELECT address.country,COUNT(*) as numListing FROM listing INNER JOIN address ON" +
+                        " listing.address_id=address.address_id " +
+                        "  GROUP BY address.country";
+                int result = -1;
+                if (type==2)
+                    sql = "SELECT address.country,address.city, COUNT(*) as numListing FROM listing INNER JOIN address ON" +
+                            " listing.address_id=address.address_id " +
+                            "  GROUP BY address.country,address.city";
+                if (type==3)
+                    sql = "SELECT address.country,address.city,address.pCode, COUNT(*) as numListing FROM listing" +
+                            " INNER JOIN address ON listing.address_id=address.address_id " +
+                            "  GROUP BY address.country,address.city,address.pCode";
+                try {
+                    //Group By Country
+                    createConnection();
+                    numListings = conn.prepareStatement(sql);
+                    rs = numListings.executeQuery();
+                    if (rs.next())
+                        result = rs.getInt(1);
 
+                    rs.close();
+                    numListings.close();
+                    closeConnection();
 
-
-    public static ArrayList<String> getAllHostsNamesAndIDs() throws Exception{
-        ArrayList<String> list = new ArrayList<String>();
-        PreparedStatement hostData = null;
-        ResultSet rs = null;
-
-        try {
-            createConnection();
-            hostData = conn.prepareStatement("SELECT host.user_id,user.name FROM host INNER JOIN user ON user.user_id=host.user_id;");
-            rs = hostData.executeQuery();
-            while (rs.next())
-                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
-
-            rs.close();
-            hostData.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            try{
-                rs.close();
-                hostData.close();
-            }catch (Exception e){
-                int a=0;
-            }
-        }
-        return list;
-    }
-
-    public static ArrayList<String> getAllRentersNamesAndIDs() throws Exception{
-        ArrayList<String> list = new ArrayList<String>();
-        PreparedStatement renterData = null;
-        ResultSet rs = null;
-        try {
-            createConnection();
-            renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=renter.user_id;");
-            rs = renterData.executeQuery();
-            while (rs.next())
-                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
-
-            rs.close();
-            renterData.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            try{
-                rs.close();
-                renterData.close();
-            }catch (Exception e){
-                int a=0;
-            }
-        }
-        return list;
-    }
-    public static String createListing(Listing listing,String userID) throws Exception{
-
-        PreparedStatement createListing = null;
-        PreparedStatement createAddress = null;
-        PreparedStatement createLocation = null;
-        ResultSet rsAddr = null;
-        ResultSet rsLoc = null;
-        ResultSet rs = null;
-        int addrId;
-        int locId;
-        int listingId = -1;
-        String sql = "INSERT INTO listing (location_id, address_id, type, num_bedrooms #%#%# )  VALUES (?,?,?,?";
-        String colNames ="";
-        int cCount = 0;
-
-        for (int i = 0; i < listing.getCharacteristics().size(); i++) {
-            colNames += ", " + listing.getCharacteristics().get(i);
-            sql += ",?";
-            cCount++;
-        }
-        sql.replace("#%#%#",colNames);
-        sql+= ");";
-
-
-        try{
-            //needs to be implemented...
-            if (commercialCheck(Integer.parseInt(userID),listing.getCountry(),listing.getCity())){
-                return "You have exceeded the max number of acceptable listings in the specified location";
-            }
-            createConnection();
-            createAddress = conn.prepareStatement("INSERT INTO  address (pCode, country, city)  VALUES (?,?,?);",
-                    PreparedStatement.RETURN_GENERATED_KEYS);
-            createAddress.setString(1,listing.getPostalCode());
-            createAddress.setString(2,listing.getCity(););
-            createLocation = conn.prepareStatement("INSERT INTO location (latitude, longitude)  VALUES (?,?);",
-                    PreparedStatement.RETURN_GENERATED_KEYS);
-            createLocation.setBigDecimal(1, listing.getLatitude());
-            createLocation.setBigDecimal(2, listing.getLongitude());
-            int checkAddr = createAddress.executeUpdate();
-            int checkLoc = createLocation.executeUpdate();
-            if (checkAddr >0 && checkLoc > 0){
-                rsAddr = createAddress.getGeneratedKeys();
-                rsLoc = createLocation.getGeneratedKeys();
-                if (rsAddr.next() && rsLoc.next()) {
-                    addrId = (rsAddr.getInt(1));
-                    locId = (rsLoc.getInt(1));
-
+                } catch (Exception e) {
+                    throw e;
+                } finally{
+                    try{
+                        rs.close();
+                        numListings.close();
+                    }catch (Exception e){
+                        int a =0;
+                    }
                 }
-                rsAddr.close();
-                rsLoc.close();
+                return result;
             }
-            if (addrId != -1 && locId != -1 ){
-                createListing = conn.prepareStatement(sql,PreparedStatement.RETURN_GENERATED_KEYS);
-                createListing.setInt(1,Integer.parseInt(userID));
-                createListing.setInt(3,addrId);
-                createListing.setInt(2,locId);
-                createListing.setString(4, listing.getListingType());
-                createListing.setInt(5, listing.getNumBedrooms());
-                for (int i = 6; i <= 5+cCount; i++) {
-                    createListing.setBoolean(i, true);
 
+
+            public static int rankHosts(boolean city) throws Exception{
+                PreparedStatement numListings = null;
+                ResultSet rs = null;
+                String sql = "select * from (select address.country,user_id, count(*) as numListing from listing" +
+                        " INNER JOIN address on address.address_id=listing.address_id GROUP BY user_id,address.country)t" +
+                        " GROUP BY t.country ASC,numListing DESC,t.user_id;";
+                if (city)
+                    sql = "select * from (select address.country,address.city,user_id, count(*) as numListing from listing" +
+                            " INNER JOIN address on address.address_id=listing.address_id GROUP BY user_id,address.country" +
+                            ",address.city)t GROUP BY t.country ASC,t.city ASC,numListing DESC,t.user_id;";
+                int result = -1;
+
+                try {
+                    createConnection();
+                    numListings = conn.prepareStatement(sql);
+                    rs = numListings.executeQuery();
+                    if (rs.next())
+                        result = rs.getInt(1);
+
+                    rs.close();
+                    numListings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally{
+                    try{
+                        rs.close();
+                        numListings.close();
+                    }catch (Exception e){
+                        int a =0;
+                    }
                 }
-                int result = createListing.executeUpdate();
-                rs = createListing.getGeneratedKeys();
+                return result;
+            }
+            public static int commercialHosts() throws Exception{
+                PreparedStatement numListings = null;
+                ResultSet rs = null;
+                String sql = "select * from " +
+                        "(select address.country,address.city,user_id, count(*) as numListing, s.totListing from listing " +
+                        "INNER JOIN address on address.address_id=listing.address_id CROSS JOIN (select address.country," +
+                        "address.city,count(*) as totListing from listing INNER JOIN address on " +
+                        "address.address_id=listing.address_id GROUP BY address.country,address.city)s ON " +
+                        "s.country=address.country AND s.city=address.city WHERE isActive=? GROUP BY user_id,address.country,address.city)t " +
+                        "WHERE t.numListing >= 0.1*t.totListing GROUP BY t.country ASC,t.city ASC,numListing DESC,t.user_id;";
 
-                if (result > 0 && rs.next()){
-                    listingId = rs.getInt(1);
+
+
+                int result = -1;
+                try {
+                    createConnection();
+                    numListings = conn.prepareStatement(sql);
+                    numListings.setBoolean(1,true);
+                    rs = numListings.executeQuery();
+                    if (rs.next())
+                        result = rs.getInt(1);
+
+                    rs.close();
+                    numListings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally{
+                    try{
+                        rs.close();
+                        numListings.close();
+                    }catch (Exception e){
+                        int a =0;
+                    }
                 }
-                createListing.close();
-                rs.close();
-
+                return result;
             }
-            closeConnection();
-            createAddress.close();
-            createLocation.close();
 
-        }catch (Exception e){
-            throw e;
-        }finally {
-            try  {
-                createAddress.close();
-                createLocation.close();
-                rsAddr.close();
-                rsLoc.close();
-                createListing.close();
-                rs.close();
-            } catch (Exception e){
-                int a =0;
+
+            public static int reportRentalRanksByDate(java.sql.Date startDate, java.sql.Date endDate,boolean city) throws Exception {
+                PreparedStatement numListings = null;
+                ResultSet rs = null;
+                String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.isActive=0 group by user_id)t group by" +
+                        " t.numRental DESC,t.user_id WHERE start_date >=? and start_date<=?";
+                if (city)
+                    sql = "select * from (select address.country,rental.user_id, count(*) as numRental from rental INNER JOIN" +
+                            " listing ON rental.listing_id=listing.listing_id INNER JOIN address on address.address_id =" +
+                            " listing.address_id WHERE rental.isActive = 0 group by rental.user_id,address.country)t where t.numRental > 1 group by" +
+                            " t.country ASC, t.numRental DESC,t.user_id;";
+                int result = -1;
+                try {
+                    createConnection();
+                    numListings = conn.prepareStatement(sql);
+                    numListings.setDate(1,startDate);
+                    numListings.setDate(2,endDate);
+                    rs = numListings.executeQuery();
+                    if (rs.next())
+                        result = rs.getInt(1);
+
+                    rs.close();
+                    numListings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally{
+                    try{
+                        rs.close();
+                        numListings.close();
+                    }catch (Exception e){
+                        int a =0;
+                    }
+                }
+                return result;
             }
+            //NOT DONE filler
+            public static int reportCancelledRentals(boolean host) throws Exception {
+                PreparedStatement numListings = null;
+                ResultSet rs = null;
+                String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.isActive=0 group by user_id)t group by" +
+                        " t.numRental DESC,t.user_id WHERE start_date >=? and start_date<=?";
+                if (host)
+                    sql = "select * from (select address.country,rental.user_id, count(*) as numRental from rental INNER JOIN" +
+                            " listing ON rental.listing_id=listing.listing_id INNER JOIN address on address.address_id =" +
+                            " listing.address_id WHERE rental.isActive = 0 group by rental.user_id,address.country)t where t.numRental > 1 group by" +
+                            " t.country ASC, t.numRental DESC,t.user_id;";
+                int result = -1;
+                try {
+                    createConnection();
+                    numListings = conn.prepareStatement(sql);
+
+                    rs = numListings.executeQuery();
+                    if (rs.next())
+                        result = rs.getInt(1);
+
+                    rs.close();
+                    numListings.close();
+                    closeConnection();
+
+                } catch (Exception e) {
+                    throw e;
+                } finally{
+                    try{
+                        rs.close();
+                        numListings.close();
+                    }catch (Exception e){
+                        int a =0;
+                    }
+                }
+                return result;
+            }
+
+
+
+
+
         }
-
-        return String.valueOf(listingId);
-    }
-
-    public static String deleteListing(String listingID) throws Exception{
-        boolean cleanDelete = true;
-        PreparedStatement updateListing = null;
-        PreparedStatement updateRental = null;
-        PreparedStatement updateCalendar = null;
-
-        try {
-            createConnection();
-
-            updateListing = conn.prepareStatement("UPDATE listing SET listing.isActive =? where listing.isActive =? AND listing.listing_id =?;");
-            updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id  SET cancelled_By =?,cancelled_On = CURDATE() WHERE listing.isActive =? AND rental.end_date >= CURDATE();");
-            updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id SET isAvailable = ? WHERE listing.isActive =? AND calendar_entry.date >= CURDATE();");
-
-            updateListing.setBoolean(1,false);
-            updateListing.setBoolean(2,true);
-            updateListing.setInt(3,Integer.parseInt(listingID));
-            if(updateListing.executeUpdate() < 0)
-                cleanDelete = false;
-            updateRental.setInt(1,1);
-            //updateRental.setBoolean(2,false);
-            //updateRental.setInt(2,Integer.parseInt(userID));
-            updateRental.setBoolean(2,true);
-            if(updateRental.executeUpdate() < 0)
-                cleanDelete = false;
-            updateCalendar.setBoolean(1,false);
-            updateCalendar.setBoolean(2,true);
-            if(updateCalendar.executeUpdate() < 0)
-                cleanDelete = false;
-
-
-
-            updateListing.close();
-            updateRental.close();
-            updateCalendar.close();
-            closeConnection();
-        } catch (Exception e) {
-            throw e;
-        }finally{
-            try{
-
-                updateListing.close();
-                updateRental.close();
-                updateCalendar.close();
-            }catch (Exception e){
-                int a=0;
-            }
-        }
-        return String.valueOf(cleanDelete);
-    }
-
-
-    public static boolean commercialCheck(int userID, String country, String city) throws Exception{
-        PreparedStatement numListings = null;
-        ResultSet rs = null;
-        String sql = "select * from " +
-                "(select address.country,address.city,user_id, count(*) as numListing, s.totListing from listing " +
-                "INNER JOIN address on address.address_id=listing.address_id CROSS JOIN (select address.country,address.city,count(*) as totListing from listing " +
-                "INNER JOIN address on address.address_id=listing.address_id GROUP BY address.country,address.city)s ON s.country=address.country AND s.city=address.city " +
-                "WHERE user_id=? and isActive=? address.country=? and address.city =? GROUP BY user_id,address.country,address.city)t " +
-                "WHERE t.numListing >= 0.1*t.totListing and t.numListing >= 5;";
-
-
-
-        boolean result = false;
-        try {
-            createConnection();
-            numListings = conn.prepareStatement(sql);
-            numListings.setInt(1,userID);
-            numListings.setBoolean(2,true);
-            numListings.setString(3,country);
-            numListings.setString(4,city);
-            rs = numListings.executeQuery();
-            if (rs.next())
-                result = true;
-
-            rs.close();
-            numListings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            try{
-                rs.close();
-                numListings.close();
-            }catch (Exception e){
-                int a =0;
-            }
-        }
-        return result;
-    }
-
-    public static ArrayList<String> getHostListings(String userID) throws Exception {
-        ArrayList<String> list = new ArrayList<String>();
-        PreparedStatement listings = null;
-        ResultSet rs = null;
-        try {
-            createConnection();
-            listings = conn.prepareStatement("SELECT listing_id type,address.city,address.country,address.postal_code FROM listing " +
-                    "INNER JOIN address ON listing.address_id=address.address_id WHERE listing.user_id=?;");
-            listings.setInt(1,Integer.parseInt(userID));
-            rs = listings.executeQuery();
-            while (rs.next())
-                list.add(String.format("%d:Type:%s:Country:%s:City:%s:Postal Code:%s",rs.getInt("listing_id"),
-                        rs.getString("type"),rs.getString("address.country"),rs.getString("address.city"),rs.getString("address.pCode")));
-
-
-            rs.close();
-            listings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            try{
-                rs.close();
-                listings.close();
-            }catch (Exception e){
-                int a=0;
-            }
-        }
-        return list;
-    }
-
-    public static ArrayList<String> getRenterBookings(String userID) throws Exception {
-        ArrayList<String> list = new ArrayList<String>();
-        PreparedStatement listings = null;
-        ResultSet rs = null;
-        try {
-            createConnection();
-            listings = conn.prepareStatement("SELECT rental_id,listing.listing_id,address.city,address.country FROM rental " +
-                    "INNER JOIN listing ON listing.listing_id=rental.rental_id INNER JOIN address ON" +
-                    " listing.listing_id=address.address_id WHERE rental.user_id=?;");
-            listings.setInt(1,Integer.parseInt(userID));
-            rs = listings.executeQuery();
-            while (rs.next())
-                list.add(String.format("%d:Listing:%s:Country:%s:City:%s:Postal Code:%s",rs.getInt("rental_id")
-                        ,rs.getInt("listing.listing_id"), rs.getString("address.country"),rs.getString("address.city")));
-
-
-            rs.close();
-            listings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            try{
-                rs.close();
-                listings.close();
-            }catch (Exception e){
-                int a=0;
-            }
-        }
-        return list;
-    }
-    //REPORT FUNCTIONS VERY VOLATILE- NEED to be verified on how they are supposed to work????
-
-
-    //SQL UPDATED
-    public static int reportRentalsByDate(java.sql.Date startDate, java.sql.Date endDate,boolean postal) throws Exception{
-        PreparedStatement numListings = null;
-        ResultSet rs = null;
-        String sql = "SELECT address.city, COUNT(*) as numRentals FROM rental INNER JOIN listing ON" +
-                " rental.listing_id=listing.listing_id INNER JOIN address ON listing.address_id=address.address_id" +
-                " where rental.start_date >= ? and rental.start_date <=? GROUP BY address.city;";
-        if (postal)
-            sql = "SELECT address.city, address.pCode, COUNT(*) as numRentals FROM rental INNER JOIN listing ON" +
-                    " rental.listing_id=listing.listing_id INNER JOIN address ON" +
-                    " listing.address_id=address.address_id where rental.start_date >= ? " +
-                    "and rental.start_date <=? GROUP BY address.city, address.pCode;";
-        int result = -1;
-        try {
-            createConnection();
-            numListings = conn.prepareStatement(sql);
-            numListings.setDate(1,startDate);
-            numListings.setDate(2,endDate);
-            rs = numListings.executeQuery();
-            if (rs.next())
-                result = rs.getInt(1);
-
-            rs.close();
-            numListings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            try{
-                rs.close();
-                numListings.close();
-            }catch (Exception e){
-                int a =0;
-            }
-        }
-        return result;
-    }
-
-
-    public static int reportListings(int type) throws Exception{
-        PreparedStatement numListings = null;
-        ResultSet rs = null;
-        String sql = "SELECT address.country,COUNT(*) as numListing FROM listing INNER JOIN address ON" +
-                " listing.address_id=address.address_id " +
-                "  GROUP BY address.country";
-        int result = -1;
-        if (type==2)
-            sql = "SELECT address.country,address.city, COUNT(*) as numListing FROM listing INNER JOIN address ON" +
-                    " listing.address_id=address.address_id " +
-                    "  GROUP BY address.country,address.city";
-        if (type==3)
-            sql = "SELECT address.country,address.city,address.pCode, COUNT(*) as numListing FROM listing" +
-                    " INNER JOIN address ON listing.address_id=address.address_id " +
-                    "  GROUP BY address.country,address.city,address.pCode";
-        try {
-            //Group By Country
-            createConnection();
-            numListings = conn.prepareStatement(sql);
-            rs = numListings.executeQuery();
-            if (rs.next())
-                result = rs.getInt(1);
-
-            rs.close();
-            numListings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            try{
-                rs.close();
-                numListings.close();
-            }catch (Exception e){
-                int a =0;
-            }
-        }
-        return result;
-    }
-
-
-    public static int rankHosts(boolean city) throws Exception{
-        PreparedStatement numListings = null;
-        ResultSet rs = null;
-        String sql = "select * from (select address.country,user_id, count(*) as numListing from listing" +
-                " INNER JOIN address on address.address_id=listing.address_id GROUP BY user_id,address.country)t" +
-                " GROUP BY t.country ASC,numListing DESC,t.user_id;";
-        if (city)
-            sql = "select * from (select address.country,address.city,user_id, count(*) as numListing from listing" +
-                    " INNER JOIN address on address.address_id=listing.address_id GROUP BY user_id,address.country" +
-                    ",address.city)t GROUP BY t.country ASC,t.city ASC,numListing DESC,t.user_id;";
-        int result = -1;
-
-        try {
-            createConnection();
-            numListings = conn.prepareStatement(sql);
-            rs = numListings.executeQuery();
-            if (rs.next())
-                result = rs.getInt(1);
-
-            rs.close();
-            numListings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            try{
-                rs.close();
-                numListings.close();
-            }catch (Exception e){
-                int a =0;
-            }
-        }
-        return result;
-    }
-    public static int commercialHosts() throws Exception{
-        PreparedStatement numListings = null;
-        ResultSet rs = null;
-        String sql = "select * from " +
-                "(select address.country,address.city,user_id, count(*) as numListing, s.totListing from listing " +
-                "INNER JOIN address on address.address_id=listing.address_id CROSS JOIN (select address.country," +
-                "address.city,count(*) as totListing from listing INNER JOIN address on " +
-                "address.address_id=listing.address_id GROUP BY address.country,address.city)s ON " +
-                "s.country=address.country AND s.city=address.city WHERE isActive=? GROUP BY user_id,address.country,address.city)t " +
-                "WHERE t.numListing >= 0.1*t.totListing GROUP BY t.country ASC,t.city ASC,numListing DESC,t.user_id;";
-
-
-
-        int result = -1;
-        try {
-            createConnection();
-            numListings = conn.prepareStatement(sql);
-            numListings.setBoolean(1,true);
-            rs = numListings.executeQuery();
-            if (rs.next())
-                result = rs.getInt(1);
-
-            rs.close();
-            numListings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            try{
-                rs.close();
-                numListings.close();
-            }catch (Exception e){
-                int a =0;
-            }
-        }
-        return result;
-    }
-
-
-    public static int reportRentalRanksByDate(java.sql.Date startDate, java.sql.Date endDate,boolean city) throws Exception {
-        PreparedStatement numListings = null;
-        ResultSet rs = null;
-        String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.isActive=0 group by user_id)t group by" +
-                " t.numRental DESC,t.user_id WHERE start_date >=? and start_date<=?";
-        if (city)
-            sql = "select * from (select address.country,rental.user_id, count(*) as numRental from rental INNER JOIN" +
-                    " listing ON rental.listing_id=listing.listing_id INNER JOIN address on address.address_id =" +
-                    " listing.address_id WHERE rental.isActive = 0 group by rental.user_id,address.country)t where t.numRental > 1 group by" +
-                    " t.country ASC, t.numRental DESC,t.user_id;";
-        int result = -1;
-        try {
-            createConnection();
-            numListings = conn.prepareStatement(sql);
-            numListings.setDate(1,startDate);
-            numListings.setDate(2,endDate);
-            rs = numListings.executeQuery();
-            if (rs.next())
-                result = rs.getInt(1);
-
-            rs.close();
-            numListings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            try{
-                rs.close();
-                numListings.close();
-            }catch (Exception e){
-                int a =0;
-            }
-        }
-        return result;
-    }
-    //NOT DONE filler
-    public static int reportCancelledRentals(boolean host) throws Exception {
-        PreparedStatement numListings = null;
-        ResultSet rs = null;
-        String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.isActive=0 group by user_id)t group by" +
-                " t.numRental DESC,t.user_id WHERE start_date >=? and start_date<=?";
-        if (host)
-            sql = "select * from (select address.country,rental.user_id, count(*) as numRental from rental INNER JOIN" +
-                    " listing ON rental.listing_id=listing.listing_id INNER JOIN address on address.address_id =" +
-                    " listing.address_id WHERE rental.isActive = 0 group by rental.user_id,address.country)t where t.numRental > 1 group by" +
-                    " t.country ASC, t.numRental DESC,t.user_id;";
-        int result = -1;
-        try {
-            createConnection();
-            numListings = conn.prepareStatement(sql);
-
-            rs = numListings.executeQuery();
-            if (rs.next())
-                result = rs.getInt(1);
-
-            rs.close();
-            numListings.close();
-            closeConnection();
-
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            try{
-                rs.close();
-                numListings.close();
-            }catch (Exception e){
-                int a =0;
-            }
-        }
-        return result;
-    }
-
-
-
-
-
-}
