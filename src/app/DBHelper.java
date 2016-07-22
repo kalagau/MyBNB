@@ -1,7 +1,9 @@
         package com.company;
 
+        import java.math.BigDecimal;
         import java.sql.*;
         import java.util.ArrayList;
+        import java.util.Map;
 
 
         /**
@@ -387,7 +389,7 @@
 
 
                 try{
-                    //needs to be implemented...
+
                     if (commercialCheck(Integer.parseInt(userID),listing.getCountry(),listing.getCity())){
                         return "You have exceeded the max number of acceptable listings in the specified location";
                     }
@@ -614,18 +616,34 @@
             }
 
 
-            public static Listing getListingInfo(String listingID) throws Exception{
-                Listing listing = null;
+
+
+            //WARNING NEED TO CHECK
+            public static Listing getListingInfo(String listingID, Listing listing) throws Exception{
+                Listing listinga = null;
                 PreparedStatement listings = null;
                 ResultSet rs = null;
+                Map map = new HashMap();
+
                 try {
                     createConnection();
-                    listings = conn.prepareStatement("SELECT * from listing  WHERE listing_id=?;");
+                    listings = conn.prepareStatement("SELECT * from listing INNER JOIN address ON listing.address_id = address.address_id INNER JOIN location on location.location_id=listing.location_id WHERE listing_id=?;");
                     listings.setInt(1,Integer.parseInt(listingID));
                     rs = listings.executeQuery();
-                    if (rs.next())
-                        rs.getMetaData().getColumnCount();
+                    if (rs.next()) {
 
+                        int count = rs.getMetaData().getColumnCount();
+                        //maa = (String)listing.get("address");
+                        map.put  = (String)listing.get("postalCode");
+                        this.country = (String)listing.get("country");
+                        this.city = (String)listing.get("city");
+                        this.longitude = BigDecimal.valueOf((Double)listing.get("longitude"));
+                        this.latitude = BigDecimal.valueOf((Double)listing.get("latitude"));
+                        this.mainPrice = (Double)listing.get("mainPrice");
+                        this.numberOfBedrooms = (int)listing.get("numberOfBedrooms");
+                        this.hasKitchen = (boolean)listing.get("hasKitchen");
+                        this.type = (String)listing.get("type");
+                    }
 
 
 
