@@ -12,7 +12,7 @@ import java.util.function.Function;
 public class Validators {
 
     public static Map<ValidatorKeys, Function> Validation;
-    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE, FUTURE_START_DATE, FUTURE_END_DATE}
+    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE, FUTURE_START_DATE, FUTURE_END_DATE, CC_EXPIRY}
     private static Calendar startDate;
 
     public static void initMap(){
@@ -23,6 +23,7 @@ public class Validators {
         Validation.put(ValidatorKeys.POSTAL_CODE, (s)-> Validators.isPostalCode((String)s));
         Validation.put(ValidatorKeys.FUTURE_START_DATE, (d)-> Validators.isFutureStartDate((Date)d));
         Validation.put(ValidatorKeys.FUTURE_END_DATE, (d)-> Validators.isFutureEndDate((Date)d));
+        Validation.put(ValidatorKeys.CC_EXPIRY, (s)-> Validators.isCCExpiry((String) s));
     }
 
     public static boolean noValidation(Object o){
@@ -60,6 +61,9 @@ public class Validators {
         return cal.after(startDate);
     }
 
+    public static boolean isCCExpiry(String str){
+        return str.matches("((0?[1-9])|(1[0-2]))/\\d{4}"); // mm/yyyy
+    }
 
 
 }

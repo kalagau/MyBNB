@@ -14,19 +14,16 @@ import java.util.*;
  */
 public class Terminal {
 
-    private Scanner sc;
     private Decider decider;
-    private Asker asker;
-
     private UserHandler userHandler;
     private ListingHandler listingHandler;
     private ReviewHandler reviewHandler;
     private BookingHandler bookingHandler;
 
     public Terminal(){
-        sc = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
+        Asker asker = new Asker(sc);
         decider = new Decider(sc);
-        asker = new Asker(sc);
         userHandler = new UserHandler(decider, asker, "", sc, this);
         listingHandler = new ListingHandler(decider, asker, userHandler.getUserID(), sc);
         reviewHandler = new ReviewHandler(decider, asker, userHandler.getUserID(), sc);

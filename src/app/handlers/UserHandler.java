@@ -50,13 +50,16 @@ public class UserHandler extends BaseHandler {
         asker.add(new Info("occupation", "Occupation:", Info.DataType.STRING));
         asker.add(new Info("DOB", "Date of Birth (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.IS_ADULT));
         asker.add(new Info("SIN", "Social Insurance Number:", Info.DataType.STRING, Validators.ValidatorKeys.ALL_NUMBERS));
+        asker.add(new Info("country", "Country:", Info.DataType.STRING));
+        asker.add(new Info("city", "City:", Info.DataType.STRING));
+        asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, Validators.ValidatorKeys.POSTAL_CODE));
         asker.add(new Info("isRenter", "Will you be a renter? (y/n):", Info.DataType.BOOLEAN));
         User user = new User(asker.askQuestions());
 
         if (user.isRenter()) {
             asker.add(new Info("number", "Credit Card Number:", Info.DataType.STRING, Validators.ValidatorKeys.ALL_NUMBERS));
             asker.add(new Info("expiryDate", "Credit Card Expiry Date:", Info.DataType.STRING));
-            asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING, Validators.ValidatorKeys.ALL_NUMBERS));
+            asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING, Validators.ValidatorKeys.CC_EXPIRY));
             asker.add(new Info("holderName", "Credit Card Holder Name:", Info.DataType.STRING));
             user.setCreditCard(new CreditCard(asker.askQuestions()));
         }
