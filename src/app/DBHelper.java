@@ -1,9 +1,12 @@
         package com.company;
 
+        import app.objects.Listing;
+
         import java.math.BigDecimal;
         import java.sql.*;
         import java.util.ArrayList;
         import java.util.Map;
+        import java.util.HashMap;
 
 
         /**
@@ -375,7 +378,7 @@
                 int addrId = -1;
                 int locId = -1;
                 int listingId = -1;
-                String sql = "INSERT INTO listing (location_id, address_id, type, num_bedrooms #%#%# )  VALUES (?,?,?,?";
+                String sql = "INSERT INTO listing (location_id, address_id, type, price, num_bedrooms #%#%# )  VALUES (?,?,?,?,?";
                 String colNames ="";
                 int cCount = 0;
 
@@ -421,8 +424,9 @@
                         createListing.setInt(3,addrId);
                         createListing.setInt(2,locId);
                         createListing.setString(4, listing.getListingType());
-                        createListing.setInt(5, listing.getNumBedrooms());
-                        for (int i = 6; i <= 5+cCount; i++) {
+                        createListing.setBigDecimal(5,listing.getMainPrice());
+                        createListing.setInt(6, listing.getNumBedrooms());
+                        for (int i = 7; i <= 6+cCount; i++) {
                             createListing.setBoolean(i, true);
 
                         }
@@ -619,11 +623,12 @@
 
 
             //WARNING NEED TO CHECK
-            public static Listing getListingInfo(String listingID, Listing listing) throws Exception{
-                Listing listinga = null;
+            public static Listing getListingInfo(String listingID) throws Exception{
+                Listing listing = null;
                 PreparedStatement listings = null;
                 ResultSet rs = null;
                 Map map = new HashMap();
+                ArrayList<String> list = new ArrayList<String>();
 
                 try {
                     createConnection();
@@ -634,17 +639,26 @@
 
                         int count = rs.getMetaData().getColumnCount();
                         //maa = (String)listing.get("address");
-                        map.put  = (String)listing.get("postalCode");
-                        this.country = (String)listing.get("country");
-                        this.city = (String)listing.get("city");
-                        this.longitude = BigDecimal.valueOf((Double)listing.get("longitude"));
-                        this.latitude = BigDecimal.valueOf((Double)listing.get("latitude"));
-                        this.mainPrice = (Double)listing.get("mainPrice");
-                        this.numberOfBedrooms = (int)listing.get("numberOfBedrooms");
-                        this.hasKitchen = (boolean)listing.get("hasKitchen");
-                        this.type = (String)listing.get("type");
-                    }
+                        //map.put  = (String)listing.get("postalCode");
+                        map.put("postalCode",rs.getString("pCode"));
+                        map.put("country",rs.getString("country"));
+                        map.put("city",rs.getString("city"));
+                        map.put("longitude",rs.getBigDecimal("longitude"));
+                        map.put("latitude",rs.getBigDecimal("latitude"));
+                        map.put("mainPrice",rs.getBigDecimal("price"));
+                        map.put("numberOfBedrooms",rs.getInt("num_bedrooms"));
+                        map.put("type",rs.getString("type"));
+                        for (int i=9;i <=39 ;i++){
+                            if (rs.getBoolean(i))
+                                list.add(rs.getMetaData().getColumnName(i));
 
+                        }
+
+
+
+                    }
+                    listing = new Listing(map);
+                    listing.setCharacteristics(list);
 
 
                     rs.close();
@@ -797,7 +811,7 @@
                     insReview.setString(4,review.getDescription());
                     insReview.setInt(5,type);
                     int complete = insReview.executeUpdate();
-                    rs = stmt.getGeneratedKeys();
+                    rs = insReview.getGeneratedKeys();
                     if (complete > 0 && rs.next())
                         retId = String.valueOf(rs.getInt(1));
                     closeConnection();
@@ -818,7 +832,7 @@
 
 
 
-                return String.valueOf(userId);
+                return retId;
             }
 
 
@@ -849,7 +863,7 @@
                     int completeCal = updateCalendar.executeUpdate();
 
                     if (complete > 0 && completeCal > 0)
-                        retVal = "success";
+                        retval = "success";
                     updRental.close();
                     updateCalendar.close();
                     closeConnection();
@@ -869,7 +883,7 @@
 
 
 
-                return String.valueOf(userId);
+                return retval;
             }
 
             public static ArrayList<String> getMyBookings(String userID,boolean isHost) throws Exception{
