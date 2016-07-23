@@ -33,7 +33,6 @@ public class ListingHandler extends BaseHandler {
         asker.add(new Info("latitude", "Latitude:", Info.DataType.DOUBLE));
         asker.add(new Info("mainPrice", "Price:", Info.DataType.DOUBLE));
         asker.add(new Info("numberOfBedrooms", "Number of Bedrooms:", Info.DataType.INTEGER));
-        asker.add(new Info("hasKitchen", "Does it have a kitchen? (y/n):", Info.DataType.BOOLEAN));
         Listing listing = new Listing(asker.askQuestions());
 
         decider.add("full house");

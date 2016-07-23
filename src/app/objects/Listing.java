@@ -14,7 +14,6 @@ public class Listing {
 
     private int numberOfBedrooms;
     private ArrayList<String> characteristics;
-    private boolean hasKitchen;
 
     public Listing(Map listing) {
         this.postalCode = (String)listing.get("postalCode");
@@ -24,7 +23,6 @@ public class Listing {
         this.latitude = (BigDecimal)listing.get("latitude");
         this.mainPrice = (BigDecimal)listing.get("mainPrice");
         this.numberOfBedrooms = (int)listing.get("numberOfBedrooms");
-        this.hasKitchen = (boolean)listing.get("hasKitchen");
         this.type = (String)listing.get("type");
     }
 
@@ -58,10 +56,6 @@ public class Listing {
 
     public int getNumberOfBedrooms() {
         return numberOfBedrooms;
-    }
-
-    public boolean hasKitchen() {
-        return hasKitchen;
     }
 
     public String getType() {

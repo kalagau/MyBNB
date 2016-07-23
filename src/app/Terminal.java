@@ -16,26 +16,9 @@ public class Terminal {
 
     private Decider decider;
     private UserHandler userHandler;
-
-    public UserHandler getUserHandler() {
-        return userHandler;
-    }
-
-    public ListingHandler getListingHandler() {
-        return listingHandler;
-    }
-
-    public ReviewHandler getReviewHandler() {
-        return reviewHandler;
-    }
-
-    public BookingHandler getBookingHandler() {
-        return bookingHandler;
-    }
-
     private ListingHandler listingHandler;
-    private ReviewHandler reviewHandler;
     private BookingHandler bookingHandler;
+    private ReviewHandler reviewHandler;
 
     public Terminal(){
         Scanner sc = new Scanner(System.in);
@@ -77,6 +60,21 @@ public class Terminal {
             decider.add("Delete current user", userHandler::deleteUserConfirmation);
             decider.displayOptions();
         }
+    }
+    public UserHandler getUserHandler() {
+        return userHandler;
+    }
+
+    public ListingHandler getListingHandler() {
+        return listingHandler;
+    }
+
+    public ReviewHandler getReviewHandler() {
+        return reviewHandler;
+    }
+
+    public BookingHandler getBookingHandler() {
+        return bookingHandler;
     }
 
     public static void printNotFound(String items){

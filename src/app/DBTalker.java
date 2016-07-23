@@ -17,12 +17,20 @@ public class DBTalker {
             "Indoor Fireplace", "Buzzer/Wireless Intercom", "Doorman", "Pool", "Hot Tub", "Gym",
             "24-Hour Check-in", "Hangers", "Iron", "Hair Dryer", "Laptop Friendly Workspace" };
 
+    public static String createListing(String userID, Listing listing){
+        return "";
+    }
+
     public static ArrayList<String> getListings(ListingFilter filter) {
         return new ArrayList<>();
     }
 
-    public static String createListing(String userID, Listing listing){
-        return "";
+    public static Listing getListingInfo(String listingID) {
+        try { return null; }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
     }
 
     public static String deleteListing(String listingID){
@@ -77,14 +85,6 @@ public class DBTalker {
         }
     }
 
-    public static String deleteBooking(String bookingID) {
-        try { return null; }
-        catch (Exception e) {
-            errorOccurred(e);
-            return null;
-        }
-    }
-
     public static ArrayList<String> getMyBookings(String userID, boolean isHost) {
         try { return new ArrayList<>(); }
         catch (Exception e) {
@@ -93,7 +93,7 @@ public class DBTalker {
         }
     }
 
-    public static Listing getListingInfo(String listingID) {
+    public static String deleteBooking(String bookingID) {
         try { return null; }
         catch (Exception e) {
             errorOccurred(e);
@@ -102,6 +102,14 @@ public class DBTalker {
     }
 
     public static Listing addCalendarEntries(String listingID, ArrayList<CalendarEntry> entries) {
+        try { return null; }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
+    }
+
+    public static String createReview(String userID, Review review){
         try { return null; }
         catch (Exception e) {
             errorOccurred(e);
@@ -119,14 +127,6 @@ public class DBTalker {
 
     public static ArrayList<String> getReviewableListings(String userID){
         return new ArrayList<>();
-    }
-
-    public static String createReview(String userID, Review review){
-        try { return null; }
-        catch (Exception e) {
-            errorOccurred(e);
-            return null;
-        }
     }
 
     private static void errorOccurred(Exception e){
