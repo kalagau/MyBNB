@@ -2,8 +2,11 @@
         import app.objects.Listing;
             import app.objects.Review;
             import app.objects.User;
+            import app.objects.Rental;
+            import app.objects.CalendarEntryRange;
 
-    import java.sql.*;
+        import java.math.BigDecimal;
+        import java.sql.*;
     import java.util.ArrayList;
     import java.util.HashMap;
     import java.util.Map;
@@ -17,7 +20,7 @@
                 private static final String CONNECTION = "jdbc:mysql://127.0.0.1/mydb";
                 private static boolean active = false;
                 private static Connection conn;
-                private static String dateSQL = "select * from \n" +
+                private static String dateSQL = "select * from " +
                         "(select adddate('1970-01-01',t4.i*10000 + t3.i*1000 + t2.i*100 + t1.i*10 + t0.i) selected_date from\n" +
                         " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,\n" +
                         " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t1,\n" +
@@ -921,6 +924,289 @@
                     return list;
                 }
 
+                public static String createBooking(String userID, String listingID, Rental rental) throws Exception{
+                    String retval ="";
+                    PreparedStatement listingPrice= null;
+                    PreparedStatement conflicts= null;
+                    PreparedStatement insertRental= null;
+                    PreparedStatement insertCalendar= null;
+                    PreparedStatement updateCalendar= null;
+                    PreparedStatement getPrice= null;
+                    ResultSet rs= null;
+                    ResultSet rsPrice= null;
+                    ResultSet rsGetPrice= null;
+                    ResultSet rsInsRental= null;
+                    String sql= "SELECT * FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? and calendar_entry.isAvailable =? and listing_id=? ;";
+                    String priceSQL= "select listing.price from listing WHERE listing_id=?";
+                    String updCal= "UPDATE calendar_entry SET  calendar_entry.isAvailable =? where calendar_entry.date >= ? AND calendar_entry.date<=? AND and listing_id=?;";
+                    String insCal= "INSERT into calendar_entry (listing_id isAvailable,price,date) select ,? ?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
+                    String insRental = "INSERT INTO rental(user_id,listing_id,start_date,end_date) VALUES(?,?,?,?);";
+                    String totalPrice = "Select SUM(price) from calendar_entry where date>=? and date<=?";
+
+
+                    try {
+
+                        createConnection();
+                        conflicts = conn.prepareStatement(sql);
+                        conflicts.setDate(1,rental.getStartDate());
+                        conflicts.setDate(2,rental.getEndDate());
+                        conflicts.setBoolean(3,false);
+                        conflicts.setInt(4,Integer.parseInt(listingID));
+
+                        rs = conflicts.executeQuery();
+                        if (!rs.next()){
+                            listingPrice = conn.prepareStatement(priceSQL);
+                            listingPrice.setInt(1,Integer.parseInt(listingID));
+                            rsPrice = listingPrice.executeQuery();
+                            if (rsPrice.next()){
+                                BigDecimal price = rsPrice.getBigDecimal(1);
+                                updateCalendar = conn.prepareStatement(updCal);
+                                updateCalendar.setDate(2,rental.getStartDate());
+                                updateCalendar.setDate(3,rental.getEndDate());
+                                updateCalendar.setInt(4,Integer.parseInt(listingID));
+                                updateCalendar.setBoolean(1,false);
+                                if (updateCalendar.executeUpdate()>0){
+                                    insertCalendar = conn.prepareStatement(insCal);
+                                    insertCalendar.setInt(1,Integer.parseInt(listingID));
+                                    insertCalendar.setBoolean(2,false);
+                                    insertCalendar.setBigDecimal(3,price);
+                                    insertCalendar.setDate(4,rental.getStartDate());
+                                    insertCalendar.setDate(5,rental.getEndDate());
+                                    insertCalendar.setDate(6,rental.getStartDate());
+                                    insertCalendar.setDate(7,rental.getEndDate());
+                                    insertCalendar.setInt(8,Integer.parseInt(listingID));
+                                    if(insertCalendar.executeUpdate()> 0){
+                                        getPrice  = conn.prepareStatement(totalPrice);
+                                        getPrice.setDate(1,rental.getStartDate());
+                                        getPrice.setDate(2,rental.getEndDate());
+                                        rsGetPrice = getPrice.executeQuery();
+                                        if (rsGetPrice.next()){
+                                            BigDecimal tPrice = rsGetPrice.getBigDecimal(1);
+                                            insertRental = conn.prepareStatement(insRental,PreparedStatement.RETURN_GENERATED_KEYS);
+                                            int res = insertRental.executeUpdate();
+                                            rsInsRental = insertRental.getGeneratedKeys();
+                                            if (rsInsRental.next()){
+                                                retval = String.valueOf(rsInsRental.getInt(1));
+                                            }
+
+                                        }
+
+
+                                    }
+                                }
+
+                            }
+
+                        }
+                        rsInsRental.close();
+                        insertRental.close();
+                        rsGetPrice.close();
+                        getPrice.close();
+                        insertCalendar.close();
+                        updateCalendar.close();
+                        rsPrice.close();
+                        listingPrice.close();
+                        rs.close();
+                        conflicts.close();
+
+
+
+
+                        closeConnection();
+
+
+                    } catch (Exception e) {
+                        throw e;
+                    } finally {
+                        try {
+                            rsInsRental.close();
+                            insertRental.close();
+                            rsGetPrice.close();
+                            getPrice.close();
+                            insertCalendar.close();
+                            updateCalendar.close();
+                            rsPrice.close();
+                            listingPrice.close();
+                            rs.close();
+                            conflicts.close();
+                        }catch (Exception e){
+                            int a =0;
+                        }
+
+                    }
+
+
+
+                    return retval;
+                }
+
+
+                public static String setListingPrice(String listingID, CalendarEntryRange calendarEntryRange) throws Exception{
+                    String retval ="";
+                    PreparedStatement conflicts= null;
+                    PreparedStatement insertCalendar= null;
+                    PreparedStatement updateCalendar= null;
+                    ResultSet rs= null;
+                    String sql= "SELECT * FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? and calendar_entry.isAvailable =? and listing_id=?;";
+                    String updCal= "UPDATE calendar_entry SET  calendar_entry.price =? where calendar_entry.date >= ? AND calendar_entry.date<=? and listing_id=? ;";
+                    String insCal= "INSERT into calendar_entry (listing_id isAvailable,price,date) select ,? ?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
+                    try {
+
+                        createConnection();
+                        conflicts = conn.prepareStatement(sql);
+                        conflicts.setDate(1,calendarEntryRange.getStartDate());
+                        conflicts.setDate(2,calendarEntryRange.getEndDate());
+                        conflicts.setBoolean(3,false);
+                        conflicts.setInt(4,Integer.parseInt(listingID));
+                        rs = conflicts.executeQuery();
+                        if (!rs.next()){
+
+                            updateCalendar = conn.prepareStatement(updCal);
+                            updateCalendar.setDate(2,calendarEntryRange.getStartDate());
+                            updateCalendar.setDate(3,calendarEntryRange.getEndDate());
+                            updateCalendar.setInt(4,Integer.parseInt(listingID));
+                            updateCalendar.setBigDecimal(1,calendarEntryRange.getPrice());
+                            if (updateCalendar.executeUpdate()>0){
+                                insertCalendar = conn.prepareStatement(insCal);
+                                insertCalendar.setInt(1,Integer.parseInt(listingID));
+                                insertCalendar.setBoolean(2,true);
+                                insertCalendar.setBigDecimal(3,calendarEntryRange.getPrice());
+                                insertCalendar.setDate(4,calendarEntryRange.getStartDate());
+                                insertCalendar.setDate(5,calendarEntryRange.getEndDate());
+                                insertCalendar.setDate(6,calendarEntryRange.getStartDate());
+                                insertCalendar.setDate(7,calendarEntryRange.getEndDate());
+                                insertCalendar.setInt(8,Integer.parseInt(listingID));
+                                if(insertCalendar.executeUpdate()> 0){
+                                    retval ="success";
+                                }
+
+                            }
+
+                        }
+
+                        insertCalendar.close();
+                        updateCalendar.close();
+                        rs.close();
+                        conflicts.close();
+
+
+
+
+                        closeConnection();
+
+
+                    } catch (Exception e) {
+                        throw e;
+                    } finally {
+                        try {
+                            insertCalendar.close();
+                            updateCalendar.close();
+                            rs.close();
+                            conflicts.close();
+
+                        }catch (Exception e){
+                            int a =0;
+                        }
+
+                    }
+
+
+
+                    return retval;
+                }
+
+
+                public static String setListingAvailability(String listingID, CalendarEntryRange calendarEntryRange) {
+                    String retval ="";
+                    PreparedStatement listingPrice= null;
+                    PreparedStatement conflicts= null;
+                    PreparedStatement insertCalendar= null;
+                    PreparedStatement updateCalendar= null;
+                    ResultSet rs= null;
+                    ResultSet rsPrice= null;
+                    String sql= "SELECT * FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? and calendar_entry.isAvailable =? and listing_id=?;";
+                    String priceSQL= "select listing.price from listing WHERE listing_id=?";
+                    String updCal= "UPDATE calendar_entry SET  calendar_entry.isAvailable =? where calendar_entry.date >= ? AND calendar_entry.date<=? and listing_id=?;";
+                    String insCal= "INSERT into calendar_entry (listing_id isAvailable,price,date) select ,? ?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
+
+
+                    try {
+
+                        createConnection();
+                        conflicts = conn.prepareStatement(sql);
+                        conflicts.setDate(1,calendarEntryRange.getStartDate());
+                        conflicts.setDate(2,calendarEntryRange.getEndDate());
+                        conflicts.setBoolean(3,false);
+                        conflicts.setInt(4,Integer.parseInt(listingID));
+
+                        rs = conflicts.executeQuery();
+                        if (!rs.next()){
+                            listingPrice = conn.prepareStatement(priceSQL);
+                            listingPrice.setInt(1,Integer.parseInt(listingID));
+                            rsPrice = listingPrice.executeQuery();
+                            if (rsPrice.next()){
+                                BigDecimal price = rsPrice.getBigDecimal(1);
+                                updateCalendar = conn.prepareStatement(updCal);
+                                updateCalendar.setDate(2,rental.getStartDate());
+                                updateCalendar.setDate(3,rental.getEndDate());
+                                updateCalendar.setInt(4,Integer.parseInt(listingID));
+                                updateCalendar.setBoolean(1,calendarEntryRange.isAvailable());
+                                if (updateCalendar.executeUpdate()>0){
+                                    insertCalendar = conn.prepareStatement(insCal);
+                                    insertCalendar.setInt(1,Integer.parseInt(listingID));
+                                    insertCalendar.setBoolean(2,calendarEntryRange.isAvailable());
+                                    insertCalendar.setBigDecimal(3,price);
+                                    insertCalendar.setDate(4,rental.getStartDate());
+                                    insertCalendar.setDate(5,rental.getEndDate());
+                                    insertCalendar.setDate(6,rental.getStartDate());
+                                    insertCalendar.setDate(7,rental.getEndDate());
+                                    insertCalendar.setInt(8,Integer.parseInt(listingID));
+                                    if(insertCalendar.executeUpdate()> 0){
+                                        retval = "success";
+                                    }
+                                }
+
+                            }
+
+                        }
+
+                        insertCalendar.close();
+                        updateCalendar.close();
+                        rsPrice.close();
+                        listingPrice.close();
+                        rs.close();
+                        conflicts.close();
+
+
+
+
+                        closeConnection();
+
+
+                    } catch (Exception e) {
+                        throw e;
+                    } finally {
+                        try {
+                            rsInsRental.close();
+                            insertRental.close();
+                            rsGetPrice.close();
+                            getPrice.close();
+                            insertCalendar.close();
+                            updateCalendar.close();
+                            rsPrice.close();
+                            listingPrice.close();
+                            rs.close();
+                            conflicts.close();
+                        }catch (Exception e){
+                            int a =0;
+                        }
+
+                    }
+
+
+
+                    return retval;
+                }
 
 
 
@@ -929,9 +1215,7 @@
 
 
 
-
-
-                    //REPORT FUNCTIONS VERY VOLATILE- NEED to be verified on how they are supposed to work????
+                //REPORT FUNCTIONS VERY VOLATILE- NEED to be verified on how they are supposed to work????
 
 
                 //SQL UPDATED
@@ -1172,7 +1456,7 @@
                     ResultSet rs = null;
                     ResultSet rsText = null;
                     String sql = "select listing_id from listing where isActive=1)";
-                    String textSQL = "SELECT description from listing INNER JOIN review on listing.listing_id=review.listing_id where review.listng_id=?; "
+                    String textSQL = "SELECT description from listing INNER JOIN review on listing.listing_id=review.listing_id where review.listng_id=?; ";
                     int result = -1;
                     try {
                         createConnection();
