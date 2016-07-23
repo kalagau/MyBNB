@@ -4,12 +4,17 @@
             import app.objects.User;
             import app.objects.Rental;
             import app.objects.CalendarEntryRange;
+            import app.objects.ListingFilter;
+
 
         import java.math.BigDecimal;
         import java.sql.*;
-    import java.util.ArrayList;
+        import java.text.DateFormat;
+        import java.text.SimpleDateFormat;
+        import java.util.ArrayList;
     import java.util.HashMap;
     import java.util.Map;
+
 
 
             /**
@@ -902,6 +907,8 @@
                                 " listing.address_id=address.address_id WHERE listing.user_id=? AND rental.end_date >= CURDATE());");
                         listings.setInt(1,Integer.parseInt(userID));
                         rs = listings.executeQuery();
+                        DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+                        String text = df.format(date);
                         while (rs.next())
                             list.add(String.format("%d:Listing:%s:Country:%s:City:%s:Postal Code:%s ",rs.getInt("rental_id")
                                     ,rs.getInt("listing.listing_id"), rs.getString("address.country"),rs.getString("address.city")));
@@ -1116,7 +1123,7 @@
                 }
 
 
-                public static String setListingAvailability(String listingID, CalendarEntryRange calendarEntryRange) {
+                public static String setListingAvailability(String listingID, CalendarEntryRange calendarEntryRange) throws Exception{
                     String retval ="";
                     PreparedStatement listingPrice= null;
                     PreparedStatement conflicts= null;
@@ -1209,7 +1216,51 @@
                 }
 
 
+                //QUERY SEARCHING_________________________________________________
+                public static ArrayList<String> getListings(ListingFilter filter) throws Exception{
+                    PreparedStatement exactSearch = null;
 
+
+
+                    try {
+
+                        createConnection();
+                        if (!filter.getCountry().equals("")){
+                            
+                        }
+
+
+                        closeConnection();
+
+
+                    } catch (Exception e) {
+                        throw e;
+                    } finally {
+                        try {
+                            rsInsRental.close();
+                            insertRental.close();
+                            rsGetPrice.close();
+                            getPrice.close();
+                            insertCalendar.close();
+                            updateCalendar.close();
+                            rsPrice.close();
+                            listingPrice.close();
+                            rs.close();
+                            conflicts.close();
+                        } catch (Exception e) {
+                            int a = 0;
+                        }
+
+                    }
+                }
+
+
+
+
+
+
+
+                //________________________________________________________________________
 
 
 
