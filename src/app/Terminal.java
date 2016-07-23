@@ -1,9 +1,6 @@
 package app;
 
-import app.handlers.BookingHandler;
-import app.handlers.ListingHandler;
-import app.handlers.ReviewHandler;
-import app.handlers.UserHandler;
+import app.handlers.*;
 import app.modules.Asker;
 import app.modules.Decider;
 
@@ -19,6 +16,7 @@ public class Terminal {
     private ListingHandler listingHandler;
     private BookingHandler bookingHandler;
     private ReviewHandler reviewHandler;
+    private ReportsHandler reportsHandler;
 
     public Terminal(){
         Scanner sc = new Scanner(System.in);
@@ -28,6 +26,7 @@ public class Terminal {
         listingHandler = new ListingHandler(decider, asker, userHandler.getUserID(), sc, this);
         reviewHandler = new ReviewHandler(decider, asker, userHandler.getUserID(), sc, this);
         bookingHandler = new BookingHandler(decider, asker, userHandler.getUserID(), sc, this);
+        reportsHandler = new ReportsHandler(decider, asker, "", sc, this);
         startSession();
     }
 
@@ -75,6 +74,10 @@ public class Terminal {
 
     public BookingHandler getBookingHandler() {
         return bookingHandler;
+    }
+
+    public ReportsHandler getReportsHandler() {
+        return reportsHandler;
     }
 
     public static void printNotFound(String items){

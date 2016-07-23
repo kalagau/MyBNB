@@ -40,6 +40,7 @@ public class UserHandler extends BaseHandler {
     public void tryToLogin(){
         decider.add("Register", this::register);
         decider.add("Login", this::login);
+        decider.add("Reports", tm.getReportsHandler()::startReports);
         decider.displayOptions();
     }
 

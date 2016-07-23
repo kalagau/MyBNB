@@ -12,7 +12,7 @@ import java.util.function.Function;
 public class Validators {
 
     public static Map<ValidatorKeys, Function> Validation;
-    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE, FUTURE_START_DATE, FUTURE_END_DATE, CC_EXPIRY}
+    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE, FUTURE_START_DATE, FUTURE_END_DATE, START_DATE, END_DATE, CC_EXPIRY}
     private static Calendar startDate;
 
     public static void initMap(){
@@ -56,6 +56,19 @@ public class Validators {
     }
 
     public static boolean isFutureEndDate(Date date){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return cal.after(startDate);
+    }
+
+    public static boolean isStartDate(Date date){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        startDate = cal;
+        return true;
+    }
+
+    public static boolean isEndDate(Date date){
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         return cal.after(startDate);
