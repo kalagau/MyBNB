@@ -127,6 +127,10 @@ public class ListingHandler extends BaseHandler {
 
         ListingFilter listingsFilter = new ListingFilter(asker.askQuestions());
 
+        System.out.println("Enter applicable amenities below, separated by commas");
+        decider.setOptions(DBTalker.getListingCharacteristics());
+        listingsFilter.setCharacteristics(decider.displayOptionsWithMultipleInput());
+
         if(filters.contains("Type of Place")){
             decider.add("full house");
             decider.add("room");

@@ -2,6 +2,7 @@ package app.objects;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -9,33 +10,30 @@ import java.util.Map;
  */
 public class ListingFilter {
 
-
-    private String address;
-    private String postalCode;
-    private String country;
-
-    private String type;
-
+    private String city, postalCode, country, type;
     private BigDecimal longitude, latitude, lowestPrice, highestPrice, maxDistance;
     private Date firstDate, lastDate;
     private int minNumberOfBedrooms = -1;
+
+    private ArrayList<String> characteristics;
+
     public ListingFilter(Map listing) {
-        if (listing.containsKey("address")) this.address = (String) listing.get("address");
-        if (listing.containsKey("postalCode")) this.postalCode = (String) listing.get("postalCode");
-        if (listing.containsKey("country")) this.country = (String) listing.get("country");
-        if (listing.containsKey("type")) this.type = (String) listing.get("type");
-        if (listing.containsKey("longitude")) this.longitude = BigDecimal.valueOf((double) listing.get("longitude"));
-        if (listing.containsKey("latitude")) this.latitude = BigDecimal.valueOf((double) listing.get("latitude"));
-        if (listing.containsKey("lowestPrice")) this.lowestPrice = BigDecimal.valueOf((double) listing.get("lowestPrice"));
-        if (listing.containsKey("highestPrice")) this.highestPrice = BigDecimal.valueOf((double) listing.get("highestPrice"));
-        if (listing.containsKey("maxDistance")) this.maxDistance = BigDecimal.valueOf((double) listing.get("maxDistance"));
-        if (listing.containsKey("firstDate")) this.firstDate = (Date) listing.get("firstDate");
-        if (listing.containsKey("lastDate")) this.lastDate = (Date) listing.get("lastDate");
-        if (listing.containsKey("minNumberOfBedrooms")) this.minNumberOfBedrooms = (int) listing.get("minNumberOfBedrooms");
+        this.city = (String) listing.getOrDefault("city", "");
+        this.postalCode = (String) listing.getOrDefault("postalCode", "");
+        this.country = (String) listing.getOrDefault("country", "");
+        this.type = (String) listing.getOrDefault("type", "");
+        this.longitude = BigDecimal.valueOf((double) listing.getOrDefault("longitude", -1));
+        this.latitude = BigDecimal.valueOf((double) listing.getOrDefault("latitude", -1));
+        this.lowestPrice = BigDecimal.valueOf((double) listing.getOrDefault("lowestPrice", -1));
+        this.highestPrice = BigDecimal.valueOf((double) listing.getOrDefault("highestPrice", -1));
+        this.maxDistance = BigDecimal.valueOf((double) listing.getOrDefault("maxDistance", -1));
+        this.firstDate = (Date) listing.getOrDefault("firstDate", null);
+        this.lastDate = (Date) listing.getOrDefault("lastDate", null);
+        this.minNumberOfBedrooms = (int) listing.getOrDefault("minNumberOfBedrooms", -1);
     }
 
-    public String getAddress() {
-        return address;
+    public String getCity() {
+        return city;
     }
 
     public String getPostalCode() {
@@ -81,4 +79,13 @@ public class ListingFilter {
     public void setType(String type) {
         this.type = type;
     }
+
+    public ArrayList<String> getCharacteristics() {
+        return characteristics;
+    }
+
+    public void setCharacteristics(ArrayList<String> characteristics) {
+        this.characteristics = characteristics;
+    }
+
 }

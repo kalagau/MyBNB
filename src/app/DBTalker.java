@@ -11,11 +11,11 @@ import java.util.Arrays;
 public class DBTalker {
 
     private static String[] characteristics = { "Kitchen", "Internet", "TV", "Essentials", "Shampoo",
-            "Heating", "Air Conditioning", "Washer", "Dryer", "Free Parking on Premises",
-            "Wireless Internet", "Cable TV", "Breakfast", "Pets Allowed", "Family/Kid Friendly",
-            "Suitable for Events", "Smoking Allowed", "Wheelchair Accessible", "Elevator in Building",
-            "Indoor Fireplace", "Buzzer/Wireless Intercom", "Doorman", "Pool", "Hot Tub", "Gym",
-            "24-Hour Check-in", "Hangers", "Iron", "Hair Dryer", "Laptop Friendly Workspace" };
+            "Heating", "Air_Conditioning", "Washer", "Dryer", "Free_Parking_on_Premises",
+            "Wireless_Internet", "TV", "Breakfast", "Pets_Allowed", "Family_Friendly",
+            "Suitable_Events", "Smoking_Allowed", "Wheelchair_Accessible", "Elevator_in_Building",
+            "Indoor_Fireplace", "Buzzer", "Doorman", "Pool", "Hot_Tub", "Gym",
+            "24Hour_Check-in", "Hangers", "Iron", "Hair_Dryer", "Laptop_Workspace" };
 
     public static String createListing(String userID, Listing listing){
         try { return DBHelper.createListing(listing, userID); }
