@@ -138,6 +138,17 @@ public class ListingHandler extends BaseHandler {
             listingsFilter.setType(decider.displayOptions());
         }
 
+        System.out.println("Sort by:");
+        decider.add("Price");
+        decider.add("Distance");
+        listingsFilter.setSortByPrice(decider.displayOptions().equals("Price"));
+
+        if(filters.contains("Distance from Location")){
+            decider.add("Ascending");
+            decider.add("Descending");
+            listingsFilter.setSortAscending(decider.displayOptions().equals("Ascending"));
+        }
+
         return DBTalker.getListings(listingsFilter);
     }
 

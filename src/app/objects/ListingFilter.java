@@ -14,6 +14,7 @@ public class ListingFilter {
     private BigDecimal longitude, latitude, lowestPrice, highestPrice, maxDistance;
     private Date firstDate, lastDate;
     private int minNumberOfBedrooms = -1;
+    private boolean sortByPrice, sortAscending;
 
     private ArrayList<String> characteristics;
 
@@ -30,6 +31,8 @@ public class ListingFilter {
         this.firstDate = (Date) listing.getOrDefault("firstDate", null);
         this.lastDate = (Date) listing.getOrDefault("lastDate", null);
         this.minNumberOfBedrooms = (int) listing.getOrDefault("minNumberOfBedrooms", -1);
+        this.sortByPrice = (Boolean) listing.getOrDefault("sortByPrice", true);
+        this.sortAscending = (Boolean) listing.getOrDefault("sortAscending", true);
     }
 
     public String getCity() {
@@ -74,6 +77,27 @@ public class ListingFilter {
 
     public String getType() {
         return type;
+    }
+
+    public int getMinNumberOfBedrooms() {
+        return minNumberOfBedrooms;
+    }
+
+    public boolean isSortByPrice() {
+        return sortByPrice;
+    }
+
+    public boolean isSortAscending() {
+        return sortAscending;
+    }
+
+
+    public void setSortByPrice(boolean sortByPrice) {
+        this.sortByPrice = sortByPrice;
+    }
+
+    public void setSortAscending(boolean sortAscending) {
+        this.sortAscending = sortAscending;
     }
 
     public void setType(String type) {
