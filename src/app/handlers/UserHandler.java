@@ -20,7 +20,6 @@ public class UserHandler extends BaseHandler {
     private String userID = "";
     private String userName = "";
     private boolean isHost;
-    private Terminal terminal;
 
     public String getUserID() {
         return userID;
@@ -68,7 +67,7 @@ public class UserHandler extends BaseHandler {
             userID = response;
             userName = user.getName();
             System.out.println("Welcome, " + userName);
-            terminal.startSession();
+            tm.startSession();
         }
     }
 
@@ -89,7 +88,7 @@ public class UserHandler extends BaseHandler {
 
         userName = parts[0];
         userID = parts[1];
-        terminal.setUserID(userID);
+        tm.setUserID(userID);
         System.out.println("Welcome back, " + userName);
     }
 
@@ -108,8 +107,8 @@ public class UserHandler extends BaseHandler {
         System.out.println("Goodbye, " + userName);
         userID = "";
         userName = "";
-        terminal.setUserID("");
-        terminal.startSession();
+        tm.setUserID("");
+        tm.startSession();
     }
 
     public static String getUserIDFromText(String userText){

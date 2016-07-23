@@ -5,12 +5,11 @@ import app.modules.Asker;
 import app.DBTalker;
 import app.modules.Decider;
 import app.Terminal;
-import app.objects.CalendarEntry;
+import app.objects.CalendarEntryRange;
 import app.objects.Info;
 import app.objects.Rental;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -27,9 +26,11 @@ public class BookingHandler extends BaseHandler {
         asker.add(new Info("endDate", "Ending Date (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.FUTURE_END_DATE));
         Rental rental = new Rental(asker.askQuestions());
 
-        DBTalker.createBooking(userID, listingID, rental);
-        ArrayList<CalendarEntry> entries = tm.getListingHandler().produceCalendarEntries(rental.getStartDate(), rental.getEndDate(), -1., false);
-        DBTalker.addCalendarEntries(listingID, entries);
+        if(DBTalker.createBooking(userID, listingID, rental).equals("error")) {
+            System.out.println("Selected dates unavailable");
+            bookListing(listingID);
+        } else
+            System.out.println("Listing was successfully booked!");
     }
 
     public void showBooking(){
@@ -43,7 +44,6 @@ public class BookingHandler extends BaseHandler {
     public void deleteBooking(){
         String bookingID = selectFromMyBookings();
         if(!bookingID.isEmpty())
-            //todo update cal entry
             DBTalker.deleteBooking(bookingID);
         else
             Terminal.printNotFound("bookings");

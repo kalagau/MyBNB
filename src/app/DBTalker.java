@@ -101,7 +101,7 @@ public class DBTalker {
         }
     }
 
-    public static Listing addCalendarEntries(String listingID, ArrayList<CalendarEntry> entries) {
+    public static Listing addCalendarEntryRange(String listingID, CalendarEntryRange calendarEntryRange) {
         try { return null; }
         catch (Exception e) {
             errorOccurred(e);

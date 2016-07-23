@@ -19,9 +19,9 @@ public class Listing {
         this.postalCode = (String)listing.get("postalCode");
         this.country = (String)listing.get("country");
         this.city = (String)listing.get("city");
-        this.longitude = (BigDecimal)listing.get("longitude");
-        this.latitude = (BigDecimal)listing.get("latitude");
-        this.mainPrice = (BigDecimal)listing.get("mainPrice");
+        this.longitude = BigDecimal.valueOf((double)listing.get("longitude"));
+        this.latitude = BigDecimal.valueOf((double)listing.get("latitude"));
+        this.mainPrice = BigDecimal.valueOf((double)listing.get("mainPrice"));
         this.numberOfBedrooms = (int)listing.get("numberOfBedrooms");
         this.type = (String)listing.get("type");
     }
