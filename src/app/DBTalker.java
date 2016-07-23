@@ -18,14 +18,14 @@ public class DBTalker {
             "24-Hour Check-in", "Hangers", "Iron", "Hair Dryer", "Laptop Friendly Workspace" };
 
     public static String createListing(String userID, Listing listing){
-        return "";
+        try { return DBHelper.createListing(listing, userID); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
     }
 
     public static ArrayList<String> getListings(ListingFilter filter) {
-        return new ArrayList<>();
-    }
-
-    public static Listing getListingInfo(String listingID) {
         try { return null; }
         catch (Exception e) {
             errorOccurred(e);
@@ -33,8 +33,20 @@ public class DBTalker {
         }
     }
 
+    public static Listing getListingInfo(String listingID) {
+        try { return DBHelper.getListingInfo(listingID); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
+    }
+
     public static String deleteListing(String listingID){
-        return "";
+        try { return DBHelper.deleteListing(listingID); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
     }
 
     public static ArrayList<String> getListingCharacteristics(){
@@ -42,7 +54,11 @@ public class DBTalker {
     }
 
     public static ArrayList<String> getHostListings(String userID){
-        return new ArrayList<>();
+        try { return DBHelper.getHostListings(userID); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
     }
 
     public static String createNewUser(User user) {
@@ -86,14 +102,22 @@ public class DBTalker {
     }
 
     public static ArrayList<String> getMyBookings(String userID, boolean isHost) {
-        try { return new ArrayList<>(); }
+        try { return DBHelper.getMyBookings(userID, isHost); }
         catch (Exception e) {
             errorOccurred(e);
             return null;
         }
     }
 
-    public static String deleteBooking(String bookingID) {
+    public static String deleteBooking(String bookingID, boolean isHost) {
+        try { return DBHelper.deleteBooking(bookingID, isHost); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
+    }
+
+    public static Listing setListingPrice(String listingID, CalendarEntryRange calendarEntryRange) {
         try { return null; }
         catch (Exception e) {
             errorOccurred(e);
@@ -101,7 +125,7 @@ public class DBTalker {
         }
     }
 
-    public static Listing addCalendarEntryRange(String listingID, CalendarEntryRange calendarEntryRange) {
+    public static Listing setListingAvailability(String listingID, CalendarEntryRange calendarEntryRange) {
         try { return null; }
         catch (Exception e) {
             errorOccurred(e);
@@ -110,7 +134,7 @@ public class DBTalker {
     }
 
     public static String createReview(String userID, Review review){
-        try { return null; }
+        try { return DBHelper.createReview(userID, review); }
         catch (Exception e) {
             errorOccurred(e);
             return null;
@@ -118,15 +142,27 @@ public class DBTalker {
     }
 
     public static ArrayList<String> getReviewableHosts(String userID){
-        return new ArrayList<>();
+        try { return DBHelper.getReviewableHosts(userID); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
     }
 
     public static ArrayList<String> getReviewableRenters(String userID){
-        return new ArrayList<>();
+        try { return DBHelper.getReviewableRenters(userID); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
     }
 
     public static ArrayList<String> getReviewableListings(String userID){
-        return new ArrayList<>();
+        try { return DBHelper.getReviewableListings(userID); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return null;
+        }
     }
 
     private static void errorOccurred(Exception e){

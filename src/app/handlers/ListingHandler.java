@@ -48,7 +48,7 @@ public class ListingHandler extends BaseHandler {
             askStartAndEndDate();
             asker.add(new Info("price", "Price over this time:", Info.DataType.DOUBLE));
             CalendarEntryRange calendarEntryRange = new CalendarEntryRange(asker.askQuestions());
-            DBTalker.addCalendarEntryRange(listingID, calendarEntryRange);
+            DBTalker.setListingPrice(listingID, calendarEntryRange);
         } else
             Terminal.printNotFound("listings");
     }
@@ -59,7 +59,7 @@ public class ListingHandler extends BaseHandler {
             askStartAndEndDate();
             asker.add(new Info("isAvailable", "Is this period of time available for rent? (y/n):", Info.DataType.BOOLEAN));
             CalendarEntryRange calendarEntryRange = new CalendarEntryRange(asker.askQuestions());
-            DBTalker.addCalendarEntryRange(listingID, calendarEntryRange);
+            DBTalker.setListingAvailability(listingID, calendarEntryRange);
         } else
             Terminal.printNotFound("listings");
     }
@@ -97,6 +97,7 @@ public class ListingHandler extends BaseHandler {
 
     public void printListingInfo(String listingID){
         Listing listing = DBTalker.getListingInfo(listingID);
+
     }
 
     public ArrayList<String> getFilteredListings(){

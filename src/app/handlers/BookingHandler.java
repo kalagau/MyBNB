@@ -44,7 +44,7 @@ public class BookingHandler extends BaseHandler {
     public void deleteBooking(){
         String bookingID = selectFromMyBookings();
         if(!bookingID.isEmpty())
-            DBTalker.deleteBooking(bookingID);
+            DBTalker.deleteBooking(bookingID, tm.getUserHandler().isHost());
         else
             Terminal.printNotFound("bookings");
     }
