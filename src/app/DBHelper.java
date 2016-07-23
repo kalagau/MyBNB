@@ -1,12 +1,12 @@
-        package com.company;
+package app;
+    import app.objects.Listing;
+        import app.objects.Review;
+        import app.objects.User;
 
-        import app.objects.Listing;
-
-        import java.math.BigDecimal;
-        import java.sql.*;
-        import java.util.ArrayList;
-        import java.util.Map;
-        import java.util.HashMap;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
         /**
@@ -134,7 +134,7 @@
                                 PreparedStatement.RETURN_GENERATED_KEYS);
                         addrStmt.setString(1, user.getPostalCode());
                         addrStmt.setString(2, user.getCountry());
-                        addrStmt.setString(3, user.city());
+                        addrStmt.setString(3, user.getCity());
                         int success = addrStmt.executeUpdate();
                          rs = stmt.getGeneratedKeys();
                         if (success > 0 && rs.next()) {
@@ -169,7 +169,7 @@
                             card.setString(1, user.getCreditCard().getNumber());
                             card.setString(2, user.getName());
                             card.setString(3, user.getCreditCard().getCCV());
-                            card.setDate(4, user.getCreditCard().getExpiryDate());
+                            card.setString(4, user.getCreditCard().getExpiryDate());
                             int success = card.executeUpdate();
                             card.close();
                             if (success > 0) {
@@ -423,9 +423,9 @@
                         createListing.setInt(1,Integer.parseInt(userID));
                         createListing.setInt(3,addrId);
                         createListing.setInt(2,locId);
-                        createListing.setString(4, listing.getListingType());
+                        createListing.setString(4, listing.getType());
                         createListing.setBigDecimal(5,listing.getMainPrice());
-                        createListing.setInt(6, listing.getNumBedrooms());
+                        createListing.setInt(6, listing.getNumberOfBedrooms());
                         for (int i = 7; i <= 6+cCount; i++) {
                             createListing.setBoolean(i, true);
 
@@ -1130,13 +1130,15 @@
             public static int reportCancelledRentals(boolean host) throws Exception {
                 PreparedStatement numListings = null;
                 ResultSet rs = null;
-                String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.isActive=0 group by user_id)t group by" +
-                        " t.numRental DESC,t.user_id WHERE start_date >=? and start_date<=?";
+                String sql = "select * from (select user_id, count(*) as" +
+                        " numRental from rental WHERE cancelled_By=2 AND  cancelled_On>= DATE_SUB(CURDATE(), " +
+                        "INTERVAL 1 YEAR) AND cancelled_On <= CURDATE() GROUP BY " +
+                        "user_id)t group by t.numRental DESC,t.user_id;";
                 if (host)
-                    sql = "select * from (select address.country,rental.user_id, count(*) as numRental from rental INNER JOIN" +
-                            " listing ON rental.listing_id=listing.listing_id INNER JOIN address on address.address_id =" +
-                            " listing.address_id WHERE rental.isActive = 0 group by rental.user_id,address.country)t where t.numRental > 1 group by" +
-                            " t.country ASC, t.numRental DESC,t.user_id;";
+                    sql = "select user_id, numRental from (select listing.user_id, count(*) as numRental from rental" +
+                            " INNER JOIN listing ON rental.listing_id =listing.listing_id WHERE cancelled_By=1 AND" +
+                            "  cancelled_On>= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND cancelled_On <= CURDATE()" +
+                            " group by user_id)t   group by t.numRental DESC,user_id;";
                 int result = -1;
                 try {
                     createConnection();
@@ -1162,6 +1164,9 @@
                 }
                 return result;
             }
+
+
+
 
 
 
