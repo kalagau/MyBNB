@@ -40,7 +40,7 @@ public class NounPhraseParser {
         }
         is.close();
         // only keep NP's where they occur more than once
-        for (String key : map.keySet()) {
+        for (String key : nounPhrases.keySet()) {
             if (nounPhrases.get(key) > 1)
                 list.add(key);
         }
