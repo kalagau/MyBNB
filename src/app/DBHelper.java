@@ -105,10 +105,12 @@ import java.util.Map;
                             }
 
                             rs.close();
-                            addrStmt.close();
+                            usrStmt.close();
+
 
                             closeConnection();
                         }catch(Exception e) {
+                            System.out.print("sfsdffsdfdsf");
                             throw e;
                         } finally{
                             // we run this block in every method to ensure there are no memory leaks in the event
@@ -154,7 +156,7 @@ import java.util.Map;
                                 addrStmt.setString(3, user.getCity());
                                 //if the insert was sucessful we are able to track it and also retrive te new primary key
                                 int success = addrStmt.executeUpdate();
-                                 rs = stmt.getGeneratedKeys();
+                                 rs = addrStmt.getGeneratedKeys();
                                 if (success > 0 && rs.next()) {
                                     addrId = (rs.getInt(1));
                                 }
@@ -168,7 +170,7 @@ import java.util.Map;
                                     usrStmt.setDate(4, user.getDOB());
                                     usrStmt.setString(5, user.getSIN());
                                     int secondSuccess = usrStmt.executeUpdate();
-                                    rsUser = stmt.getGeneratedKeys();
+                                    rsUser = usrStmt.getGeneratedKeys();
                                     if (secondSuccess > 0 && rsUser.next()) {
                                         //we get the uesr ide after a sucessful insert
                                         userId = (rsUser.getInt(1));
@@ -435,7 +437,8 @@ import java.util.Map;
                             createAddress = conn.prepareStatement("INSERT INTO  address (pCode, country, city)  VALUES (?,?,?);",
                                     PreparedStatement.RETURN_GENERATED_KEYS);
                             createAddress.setString(1,listing.getPostalCode());
-                            createAddress.setString(2,listing.getCity());
+                            createAddress.setString(2,listing.getCountry());
+                            createAddress.setString(3,listing.getCity());
                             //create a location entry
                             createLocation = conn.prepareStatement("INSERT INTO location (latitude, longitude)  VALUES (?,?);",
                                     PreparedStatement.RETURN_GENERATED_KEYS);
