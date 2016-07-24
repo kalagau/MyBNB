@@ -26,6 +26,9 @@ import java.util.Map;
                     private static final String CONNECTION = "jdbc:mysql://127.0.0.1/mydb";
                     private static boolean active = false;
                     private static Connection conn;
+                    //generates a list of dates between 2 dates
+                    //taken from stackoverflow ---
+                    //
                     private static String dateSQL = "select * from " +
                             "(select adddate('1970-01-01',t4.i*10000 + t3.i*1000 + t2.i*100 + t1.i*10 + t0.i) selected_date from\n" +
                             " (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,\n" +
@@ -39,6 +42,7 @@ import java.util.Map;
                         //Register JDBC driver
                         //if (active)
                         //    return;
+                        //This method attempts to establish a connection with the database
                         try {
                             Class.forName(dbClassName);
                         } catch (ClassNotFoundException e) {
@@ -57,10 +61,11 @@ import java.util.Map;
                     }
 
                     public static void closeConnection() throws SQLException {
+                        // This method closes the active connectoin to the DB
                         //if (!active)
                         //   return;
                         try {
-                            //Establish connection
+                            //Close connection
                             conn.close();
                         } catch (SQLException e) {
                             System.err.println("Connection error occured!");
@@ -68,7 +73,7 @@ import java.util.Map;
                         }
 
                     }
-
+                    // Detect if potential user is already  active in the DB
                     public static int activeUser(User user) throws Exception {
                         int userId = -1;
                         PreparedStatement usrStmt = null;
@@ -76,9 +81,10 @@ import java.util.Map;
                         ResultSet rs = null;
                         try {
                             createConnection();
+                            // get user ids of users wit the same sin accrsoss the world
                             usrStmt = conn.prepareStatement("SELECT user_id,SIN,address_id FROM user where SIN=?;");
 
-                            //WARNINBGGGGGG
+
                             usrStmt.setString(1, user.getSIN());
 
 
@@ -86,11 +92,13 @@ import java.util.Map;
                             while (rs.next()) {
                                 int addr = rs.getInt("address_id");
                                 userId = rs.getInt("user_id");
+                                //SINCE sins are unique in every country
+                                //determine if the user exists in the same country
                                 addrStmt = conn.prepareStatement("SELECT * FROM address where address_id=? and country =? ");
                                 addrStmt.setInt(1, addr);
-                                //nonexistant statement
                                 addrStmt.setString(2, user.getCountry());
                                 ResultSet addrSet = addrStmt.executeQuery();
+                                //if the query returns a value we know we foun the user
                                 if (!addrSet.next())
                                     userId = -1;
                                 addrStmt.close();
@@ -100,12 +108,11 @@ import java.util.Map;
                             addrStmt.close();
 
                             closeConnection();
-                        } catch (SQLException e) {
-                            System.err.println("Connection error occured!");
-                            throw e;
-                        } catch(Exception e) {
+                        }catch(Exception e) {
                             throw e;
                         } finally{
+                            // we run this block in every method to ensure there are no memory leaks in the event
+                            // of an error. This is present in every method in this file from here.
                             try {
                                 addrStmt.close();
                                 rs.close();
@@ -133,17 +140,19 @@ import java.util.Map;
 
                         try {
                             userId = activeUser(user);
-
+                            // check if user was found
                             createConnection();
                             if (userId < 0) {
-                                //Execute a query
+                                //Create address and user
                                 addrStmt = conn.prepareStatement("INSERT INTO  address (pCode, country, city)  VALUES (?,?,?);",
                                         PreparedStatement.RETURN_GENERATED_KEYS);
                                 usrStmt = conn.prepareStatement("INSERT INTO user(address_id,occupation,name,DOB,SIN)  VALUES (?,?,?,?,?);",
                                         PreparedStatement.RETURN_GENERATED_KEYS);
+                                // we fill paramters to prevent SQL injections
                                 addrStmt.setString(1, user.getPostalCode());
                                 addrStmt.setString(2, user.getCountry());
                                 addrStmt.setString(3, user.getCity());
+                                //if the insert was sucessful we are able to track it and also retrive te new primary key
                                 int success = addrStmt.executeUpdate();
                                  rs = stmt.getGeneratedKeys();
                                 if (success > 0 && rs.next()) {
@@ -151,17 +160,17 @@ import java.util.Map;
                                 }
                                 addrStmt.close();
                                 rs.close();
+                                //we proceed if creating thr address was cuessful
                                 if (addrId > 0) {
                                     usrStmt.setInt(1, addrId);
                                     usrStmt.setString(2, user.getOccupation());
                                     usrStmt.setString(3, user.getName());
-                                    //VERIFY DATE PRIOR TO HERE
                                     usrStmt.setDate(4, user.getDOB());
-                                    //ERROR CONVERT TO INT BEOFRE HERE
                                     usrStmt.setString(5, user.getSIN());
                                     int secondSuccess = usrStmt.executeUpdate();
                                     rsUser = stmt.getGeneratedKeys();
                                     if (secondSuccess > 0 && rsUser.next()) {
+                                        //we get the uesr ide after a sucessful insert
                                         userId = (rsUser.getInt(1));
                                     }
                                     usrStmt.close();
@@ -171,8 +180,9 @@ import java.util.Map;
                                 }
                             }
 
-
+                            // only proceed if we have the user in the tabel
                             if (userId > 0) {
+                                // create a renter
                                 if (user.isRenter()) {
                                     card = conn.prepareStatement("INSERT INTO  credit_card (card_number, name, CCV,expiry_date)  VALUES (?,?,?,?);");
                                     card.setString(1, user.getCreditCard().getNumber());
@@ -201,6 +211,7 @@ import java.util.Map;
                                     }
 
                                 } else {
+                                    // create a host
                                     stmt = conn.prepareStatement("INSERT INTO  host (pCode, country, city)  VALUES (?,?,?);",
                                             PreparedStatement.RETURN_GENERATED_KEYS);
                                     stmt.setInt(1, userId);
@@ -252,13 +263,19 @@ import java.util.Map;
 
                         try {
                             createConnection();
-
+                            //when a user requests to delete their account
+                            // we delete their host and rental acconts
+                            //we cancel thier rentals and mark their listings as inactive
+                            //we also upate
                             deleteUser = conn.prepareStatement("DELETE FROM user where user_id =? ;");
                             updateRenter = conn.prepareStatement("UPDATE  renter SET  isActive=?  where user_id =? ;");
                             updateHost = conn.prepareStatement("UPDATE  host SET  isActive=?  where user_id =? ;");
                             updateListings = conn.prepareStatement("UPDATE listing INNER JOIN host ON listing.user_id=host.user_id SET listing.isActive =? where listing.isActive =? AND host.user_id =?;");
+                            
+                            //cancel all rentals now or in the future where the user is a host
                             updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET cancelled_By =?,cancelled_On = CURDATE() WHERE host.user_id=? AND listing.isActive =? AND rental.end_date >= CURDATE();");
-                            updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET isAvailable = ? WHERE host.user_id=? AND listing.isActive =? AND calendar_entry.date >= CURDATE();");
+                            //set all calendar entries for all listngs to unvailable from the host
+                            updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET isAvailable = ? WHERE host.user_id=? AND calendar_entry.date >= CURDATE();");
                             deleteUser.setInt(1, Integer.parseInt(userID));
                             updateRenter.setBoolean(1,false);
                             updateRenter.setInt(2, Integer.parseInt(userID));
@@ -267,25 +284,28 @@ import java.util.Map;
                             updateListings.setBoolean(1,false);
                             updateListings.setBoolean(2,true);
                             updateListings.setInt(3,Integer.parseInt(userID));
-                            if(updateListings.executeUpdate() < 0)
+                            //look for errors
+                            if(updateListings.executeUpdate() <= 0)
                                 cleanDelete = false;
+                            //cancelled by host
+                            //value of 1
                             updateRental.setInt(1,1);
                             //updateRental.setBoolean(2,false);
                             updateRental.setInt(2,Integer.parseInt(userID));
                             updateRental.setBoolean(3,true);
-                            if(updateRental.executeUpdate() < 0)
+                            if(updateRental.executeUpdate() <= 0)
                                 cleanDelete = false;
                             updateCalendar.setBoolean(1,false);
                             updateCalendar.setInt(2,Integer.parseInt(userID));
                             updateCalendar.setBoolean(3,true);
-                            if(updateCalendar.executeUpdate() < 0)
+                            if(updateCalendar.executeUpdate() <= 0)
                                 cleanDelete = false;
 
                             if(cleanDelete){
                                 //NEED to determine account being deleted
-                                if(updateRenter.executeUpdate() < 0)
+                                if(updateRenter.executeUpdate() <= 0)
                                     cleanDelete = false;
-                                if(updateHost.executeUpdate() < 0)
+                                if(updateHost.executeUpdate() <= 0)
                                     cleanDelete = false;
                                 if (cleanDelete) {
                                     int a = deleteUser.executeUpdate();
@@ -601,14 +621,14 @@ import java.util.Map;
                         ResultSet rs = null;
                         try {
                             createConnection();
-                            listings = conn.prepareStatement("SELECT rental_id,listing.listing_id,address.city,address.country FROM rental " +
+                            listings = conn.prepareStatement("SELECT rental_id,listing.listing_id,address.city,address.country,address.pCode FROM rental " +
                                     "INNER JOIN listing ON listing.listing_id=rental.listing_id INNER JOIN address ON" +
-                                    " listing.address_id=address.address_id WHERE rental.user_id=? AND rental.end_date >= CURDATE());");
+                                    " listing.address_id=address.address_id WHERE rental.user_id=? AND rental.end_date >= CURDATE();");
                             listings.setInt(1,Integer.parseInt(userID));
                             rs = listings.executeQuery();
                             while (rs.next())
-                                list.add(String.format("%d:Listing:%s:Country:%s:City:%s:Postal Code:%s",rs.getInt("rental_id")
-                                        ,rs.getInt("listing.listing_id"), rs.getString("address.country"),rs.getString("address.city")));
+                                list.add(String.format("%d:%s:%s:%s:%s",rs.getInt("rental_id")
+                                        ,rs.getInt("listing_id"), rs.getString("country"),rs.getString("city"),rs.getString("pCode")));
 
 
                             rs.close();
@@ -1413,32 +1433,65 @@ import java.util.Map;
 
 
 
+                    // Reporting Begins
 
-
-                    //REPORT FUNCTIONS VERY VOLATILE- NEED to be verified on how they are supposed to work????
-
-
-                    //SQL UPDATED
+                    //checked
                     public static int reportRentalsByDate(java.sql.Date startDate, java.sql.Date endDate,boolean postal) throws Exception{
                         PreparedStatement numListings = null;
+                        ArrayList<String> list = new ArrayList<String>();
+                        String filename = "numberOfRentalsDateCITY";
+
                         ResultSet rs = null;
+                        //query to get number of bookings in a specific date range by city
                         String sql = "SELECT address.city, COUNT(*) as numRentals FROM rental INNER JOIN listing ON" +
                                 " rental.listing_id=listing.listing_id INNER JOIN address ON listing.address_id=address.address_id" +
                                 " where rental.start_date >= ? and rental.start_date <=? GROUP BY address.city;";
-                        if (postal)
+
+
+                        if (postal) {
+                            //query to get number of bookings in a specific date range by postal code per city
+                             filename = "numberOfRentalsDateCITYPOSTAL";
+
                             sql = "SELECT address.city, address.pCode, COUNT(*) as numRentals FROM rental INNER JOIN listing ON" +
                                     " rental.listing_id=listing.listing_id INNER JOIN address ON" +
                                     " listing.address_id=address.address_id where rental.start_date >= ? " +
                                     "and rental.start_date <=? GROUP BY address.city, address.pCode;";
+                        }
+                        //Create File
+                        filename = FileWriter.createFile(filename);
                         int result = -1;
                         try {
                             createConnection();
+                            //fill query
                             numListings = conn.prepareStatement(sql);
                             numListings.setDate(1,startDate);
                             numListings.setDate(2,endDate);
+                            //execute query
                             rs = numListings.executeQuery();
-                            if (rs.next())
-                                result = rs.getInt(1);
+                            String header = "";
+                            //Retrieve Column names for report
+                            if (postal){
+                                header = String.format("%s:%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2) ,rs.getMetaData().getColumnName(3));
+
+                            }else {
+                                header = String.format("%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2));
+                            }
+                            list.add(header);
+                            String data = "";
+                            while (rs.next()){
+                                //select method of storing data
+                                //dependant on query used
+                                if (postal){
+                                    data = String.format("%s:%s:%d", rs.getString(1) ,rs.getString(2) ,rs.getInt(3));
+                                    list.add(data);
+                                }else {
+                                    data = String.format("%s:%d", rs.getString(1) ,rs.getInt(2));
+                                    list.add(data);
+                                }
+
+                            }
+                            //Write results
+                            FileWriter.writeToFile(list,filename);
 
                             rs.close();
                             numListings.close();
@@ -1458,28 +1511,73 @@ import java.util.Map;
                     }
 
 
+                    //this method takes in a int with values(1,2,3) to indicate report type
+                    //number of listings per country/City
+                    //cheeckd
+                    //Double check needed
                     public static int reportListings(int type) throws Exception{
                         PreparedStatement numListings = null;
+                        ArrayList<String> list = new ArrayList<String>();
+                        String filename = "numberOfListingsCountry";
                         ResultSet rs = null;
                         String sql = "SELECT address.country,COUNT(*) as numListing FROM listing INNER JOIN address ON" +
-                                " listing.address_id=address.address_id " +
-                                "  GROUP BY address.country";
+                                " listing.address_id=address.address_id where listing.isActive=TRUE" +
+                                "  GROUP BY address.country;";
                         int result = -1;
-                        if (type==2)
+                        if (type==2) {
+
+
+                            filename = "numberOfListingsCountryCity";
                             sql = "SELECT address.country,address.city, COUNT(*) as numListing FROM listing INNER JOIN address ON" +
-                                    " listing.address_id=address.address_id " +
-                                    "  GROUP BY address.country,address.city";
-                        if (type==3)
-                            sql = "SELECT address.country,address.city,address.pCode, COUNT(*) as numListing FROM listing" +
-                                    " INNER JOIN address ON listing.address_id=address.address_id " +
-                                    "  GROUP BY address.country,address.city,address.pCode";
+                                    " listing.address_id=address.address_id where listing.isActive=TRUE" +
+                                    "  GROUP BY address.country,address.city;";
+                        }
+                        if (type==3) {
+                            filename = "numberOfListingsCountryCityPostal";
+
+                        sql = "SELECT address.country,address.city,address.pCode, COUNT(*) as numListing FROM listing" +
+                                    " INNER JOIN address ON listing.address_id=address.address_id where listing.isActive=TRUE " +
+                                    "  GROUP BY address.country,address.city,address.pCode;";
+                        }
+                        filename = FileWriter.createFile(filename);
+
                         try {
-                            //Group By Country
                             createConnection();
                             numListings = conn.prepareStatement(sql);
                             rs = numListings.executeQuery();
-                            if (rs.next())
-                                result = rs.getInt(1);
+
+                            String header = String.format("%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2)) ;
+                            //Retrieve Column names for report
+                            if (type==2){
+                                header = String.format("%s:%s:%s", rs.getMetaData().getColumnName(1) ,
+                                        rs.getMetaData().getColumnName(2) ,rs.getMetaData().getColumnName(3));
+
+                            }else if (type == 3){
+                                header = String.format("%s:%s:%s:%s", rs.getMetaData().getColumnName(1),
+                                        rs.getMetaData().getColumnName(2),rs.getMetaData().getColumnName(3),
+                                        rs.getMetaData().getColumnName(4));
+                            }
+                            list.add(header);
+                            String data = "";
+                            while (rs.next()){
+                                //select method of storing data
+                                //dependant on query used
+                                if (type == 1){
+                                    data = String.format("%s:%d", rs.getString(1) ,rs.getInt(2));
+                                    list.add(data);
+                                }else if (type ==2){
+                                    data = String.format("%s:%s:%d", rs.getString(1) ,rs.getString(2),rs.getInt(3));
+                                    list.add(data);
+                                }else {
+                                    data = String.format("%s:%s:%d", rs.getString(1) ,rs.getString(2),rs.getString(3),rs.getInt(4));
+                                    list.add(data);
+
+                                }
+
+
+                            }
+                            //Write results
+                            FileWriter.writeToFile(list,filename);
 
                             rs.close();
                             numListings.close();
@@ -1488,6 +1586,7 @@ import java.util.Map;
                         } catch (Exception e) {
                             throw e;
                         } finally{
+                            //force close potentially open streams
                             try{
                                 rs.close();
                                 numListings.close();
@@ -1499,24 +1598,57 @@ import java.util.Map;
                     }
 
 
+                    //This method generates a report which Ranks hosts based on number of listings per Country/City
+                    //Checked
+                    //Double Check NEEEDED
                     public static int rankHosts(boolean city) throws Exception{
                         PreparedStatement numListings = null;
                         ResultSet rs = null;
+                        ArrayList<String> list = new ArrayList<String>();
+                        String filename = "numberOfListingsCountry";
+
                         String sql = "select * from (select address.country,user_id, count(*) as numListing from listing" +
-                                " INNER JOIN address on address.address_id=listing.address_id GROUP BY user_id,address.country)t" +
+                                " INNER JOIN address on address.address_id=listing.address_id where listing.isActive=TRUE GROUP BY user_id,address.country)t" +
                                 " GROUP BY t.country ASC,numListing DESC,t.user_id;";
-                        if (city)
+                        if (city) {
+                            filename = "numberOfListingsCountryCity";
                             sql = "select * from (select address.country,address.city,user_id, count(*) as numListing from listing" +
-                                    " INNER JOIN address on address.address_id=listing.address_id GROUP BY user_id,address.country" +
+                                    " INNER JOIN address on address.address_id=listing.address_id where listing.isActive=TRUE GROUP BY user_id,address.country" +
                                     ",address.city)t GROUP BY t.country ASC,t.city ASC,numListing DESC,t.user_id;";
+                        }
                         int result = -1;
+                        //Create unique file name
+                        filename =  FileWriter.createFile(filename);
 
                         try {
                             createConnection();
                             numListings = conn.prepareStatement(sql);
                             rs = numListings.executeQuery();
-                            if (rs.next())
-                                result = rs.getInt(1);
+                            String header = "";
+                            //Retrieve Column names for report
+                            if (city){
+                                header = String.format("%s:%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2) ,rs.getMetaData().getColumnName(3));
+
+                            }else {
+                                header = String.format("%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2));
+                            }
+                            list.add(header);
+                            String data = "";
+                            while (rs.next()){
+                                //select method of storing data
+                                //dependant on query used
+                                if (city){
+                                    data = String.format("%s:%s:%d", rs.getString(1) ,rs.getString(2) ,rs.getInt(3));
+                                    list.add(data);
+                                }else {
+                                    data = String.format("%s:%d", rs.getString(1) ,rs.getInt(2));
+                                    list.add(data);
+                                }
+
+                            }
+                            //Write results
+                            FileWriter.writeToFile(list,filename);
+
 
                             rs.close();
                             numListings.close();
@@ -1534,8 +1666,15 @@ import java.util.Map;
                         }
                         return result;
                     }
+
+
+                    //needs to b checked with updated db
+                    // Check for commercial hosts
+
                     public static int commercialHosts() throws Exception{
                         PreparedStatement numListings = null;
+                        ArrayList<String> list = new ArrayList<String>();
+                        String filename = FileWriter.createFile("commercialHosts");
                         ResultSet rs = null;
                         String sql = "select * from " +
                                 "(select address.country,address.city,user_id, count(*) as numListing, s.totListing from listing " +
@@ -1553,9 +1692,22 @@ import java.util.Map;
                             numListings = conn.prepareStatement(sql);
                             numListings.setBoolean(1,true);
                             rs = numListings.executeQuery();
-                            if (rs.next())
-                                result = rs.getInt(1);
+                            String header = String.format("%s:%s:%s:%s", rs.getMetaData().getColumnName(1)
+                                    ,rs.getMetaData().getColumnName(2) ,rs.getMetaData().getColumnName(3),rs.getMetaData().getColumnName(4));
 
+                            list.add(header);
+                            String data = "";
+                            while (rs.next()){
+                                //select method of storing data
+                                //dependant on query used
+
+                                data = String.format("%s:%d:%s:%d", rs.getString(1) ,rs.getInt(2),rs.getString(3) ,rs.getInt(4));
+                                list.add(data);
+
+                            }
+                            //Write results
+                            FileWriter.writeToFile(list,filename);
+                            // close all open streams and connections
                             rs.close();
                             numListings.close();
                             closeConnection();
@@ -1573,17 +1725,22 @@ import java.util.Map;
                         return result;
                     }
 
-
+                    //V erify query
+                    // This report ranks renters by number of rentals in a time frame and possibly per city
                     public static int reportRentalRanksByDate(java.sql.Date startDate, java.sql.Date endDate,boolean city) throws Exception {
                         PreparedStatement numListings = null;
                         ResultSet rs = null;
-                        String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.isActive=0 group by user_id)t group by" +
-                                " t.numRental DESC,t.user_id WHERE start_date >=? and start_date<=?";
+                        ArrayList<String> list = new ArrayList<String>();
+                        String filename ="rentalsInPeriod";
+                        String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.cancelledBy=0 and rental.start_date >=? and start_date<=?  group by user_id)t group by" +
+                                " t.numRental DESC,t.user_id ;";
                         if (city)
+                            filename ="rentalsInPeriodPerCity";
                             sql = "select * from (select address.country,rental.user_id, count(*) as numRental from rental INNER JOIN" +
                                     " listing ON rental.listing_id=listing.listing_id INNER JOIN address on address.address_id =" +
-                                    " listing.address_id WHERE rental.isActive = 0 group by rental.user_id,address.country)t where t.numRental > 1 group by" +
+                                    " listing.address_id WHERE rental.cancelledBy = 0 and rental.start_date >=? and start_date<=?  group by rental.user_id,address.country)t where t.numRental > 1 group by" +
                                     " t.country ASC, t.numRental DESC,t.user_id;";
+                        filename = FileWriter.createFile(filename);
                         int result = -1;
                         try {
                             createConnection();
@@ -1591,8 +1748,30 @@ import java.util.Map;
                             numListings.setDate(1,startDate);
                             numListings.setDate(2,endDate);
                             rs = numListings.executeQuery();
-                            if (rs.next())
-                                result = rs.getInt(1);
+                            String header = "";
+                            //Retrieve Column names for report
+                            if (city){
+                                header = String.format("%s:%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2) ,rs.getMetaData().getColumnName(3));
+
+                            }else {
+                                header = String.format("%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2));
+                            }
+                            list.add(header);
+                            String data = "";
+                            while (rs.next()){
+                                //select method of storing data
+                                //dependant on query used
+                                if (city){
+                                    data = String.format("%s:%d:%d", rs.getString(1) ,rs.getInt(2) ,rs.getInt(3));
+                                    list.add(data);
+                                }else {
+                                    data = String.format("%d:%d", rs.getInt(1) ,rs.getInt(2));
+                                    list.add(data);
+                                }
+
+                            }
+                            //Write results
+                            FileWriter.writeToFile(list,filename);
 
                             rs.close();
                             numListings.close();
@@ -1610,19 +1789,24 @@ import java.util.Map;
                         }
                         return result;
                     }
-
+                    // This report lists hosts/renters wit the most cancellations in the last year
+                    //Chck
                     public static int reportCancelledRentals(boolean host) throws Exception {
                         PreparedStatement numListings = null;
                         ResultSet rs = null;
-                        String sql = "select * from (select user_id, count(*) as" +
-                                " numRental from rental WHERE cancelled_By=2 AND  cancelled_On>= DATE_SUB(CURDATE(), " +
+                        ArrayList<String> list = new ArrayList<String>();
+                        String filename ="rentalsCancelledByRenters";
+                        String sql = "select * from (select user_id, count(*) as numRental from rental " +
+                                "WHERE cancelled_By=2 AND  cancelled_On>= DATE_SUB(CURDATE(), " +
                                 "INTERVAL 1 YEAR) AND cancelled_On <= CURDATE() GROUP BY " +
                                 "user_id)t group by t.numRental DESC,t.user_id;";
                         if (host)
-                            sql = "select user_id, numRental from (select listing.user_id, count(*) as numRental from rental" +
+                            filename ="rentalsCancelledByHosts";
+                            sql = "select * from (select listing.user_id, count(*) as numRental from rental" +
                                     " INNER JOIN listing ON rental.listing_id =listing.listing_id WHERE cancelled_By=1 AND" +
                                     "  cancelled_On>= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND cancelled_On <= CURDATE()" +
-                                    " group by user_id)t   group by t.numRental DESC,user_id;";
+                                    " group by user_id)t  group by t.numRental DESC,user_id;";
+                        filename = FileWriter.createFile(filename);
                         int result = -1;
                         try {
                             createConnection();
@@ -1630,8 +1814,22 @@ import java.util.Map;
 
                             rs = numListings.executeQuery();
 
-                            if (rs.next())
-                                result = rs.getInt(1);
+                            String header = "";
+                            //Retrieve Column names for report
+                            header = String.format("%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2));
+                            list.add(header);
+                            String data = "";
+                            while (rs.next()){
+                                //select method of storing data
+                                //dependant on query used
+
+                                data = String.format("%d:%d", rs.getInt(1) ,rs.getInt(2));
+                                list.add(data);
+
+
+                            }
+                            //Write results
+                            FileWriter.writeToFile(list,filename);
 
                             rs.close();
                             numListings.close();
@@ -1650,7 +1848,7 @@ import java.util.Map;
                         return result;
                     }
 
-                    public static int reportNounPhrases(boolean host) throws Exception {
+                    public static int reportNounPhrases() throws Exception {
                         PreparedStatement listings = null;
                         PreparedStatement text = null;
                         ResultSet rs = null;
@@ -1703,6 +1901,62 @@ import java.util.Map;
                         }
                         return result;
                     }
+
+
+                    //HOST TOOL KIT
+
+                    //This function attempts to reasonably satisfy the requirements from the host toolkit
+                    public static double getRecomendedPrice(String type,int numAmmenities) throws Exception{
+                        //how This function works is:
+                        // given the number of ammenties the host has provided and the type of listing
+                        //this program takes all listings of similar type and sums up the "regular" prices of the listings
+                        //with +- 2 ammenities and averages them out.
+                        //The program wont return a suggested price if there isnt sufficient data in the database
+                        PreparedStatement listings = null;
+                        ResultSet rs = null;
+                        int validMatches =0;
+                        double totalPrice = 0;
+                        try{
+                            createConnection();
+                            listings = conn.prepareStatement("Select * from listing where type =?;");
+                            rs = listings.executeQuery();
+
+                            while(rs.next()){
+                                int count = 0;
+                                // we know the order of columns hence we can loop over fixed columns
+                                for (int i=9;i <=39 ;i++) {
+                                    if (rs.getBoolean(i))
+                                        count++;
+                                }
+                                // allow for similar listings to be inclded in price calculation
+                                if(count>= numAmmenities - 2 && count<=numAmmenities + 2){
+                                    validMatches++;
+                                    totalPrice += rs.getBigDecimal("price").doubleValue();
+                                }
+
+                            }
+                            rs.close();
+                            listings.close();
+                            closeConnection();
+                            //force close all streams and connections
+                        } catch (Exception e) {
+                             throw e;
+                        }finally{
+                            try{
+
+                                rs.close();
+                                listings.close();
+                            }catch (Exception e){
+                                int a =0;
+                            }
+                        }
+                        if (validMatches>0){
+                            // return average price
+                            return totalPrice/validMatches;
+                        }
+                        return totalPrice;
+                    }
+
 
 
 
