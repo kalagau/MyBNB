@@ -164,11 +164,6 @@ public class ListingHandler extends BaseHandler {
         return decider.displayOptionsWithMultipleInput();
     }
 
-
-    public static void showListingInfo(String listingID){
-
-    }
-
     public static String getListingID(String listingText){
         return listingText.split(":")[0];
     }

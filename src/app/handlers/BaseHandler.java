@@ -11,13 +11,13 @@ import java.util.Scanner;
  */
 public abstract class BaseHandler {
 
-    protected Decider decider;
-    protected Asker asker;
-    protected String userID;
-    protected Scanner sc;
-    protected Terminal tm;
+    Decider decider;
+    Asker asker;
+    String userID;
+    Scanner sc;
+    Terminal tm;
 
-    public BaseHandler(Decider decider, Asker asker, String userID, Scanner sc, Terminal tm) {
+    BaseHandler(Decider decider, Asker asker, String userID, Scanner sc, Terminal tm) {
         this.decider = decider;
         this.asker = asker;
         this.userID = userID;
