@@ -57,8 +57,8 @@ public class UserHandler extends BaseHandler {
 
         if (user.isRenter()) {
             asker.add(new Info("number", "Credit Card Number:", Info.DataType.STRING, Validators.ValidatorKeys.ALL_NUMBERS));
-            asker.add(new Info("expiryDate", "Credit Card Expiry Date:", Info.DataType.STRING));
-            asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING, Validators.ValidatorKeys.CC_EXPIRY));
+            asker.add(new Info("expiryDate", "Credit Card Expiry Date:", Info.DataType.STRING, Validators.ValidatorKeys.CC_EXPIRY));
+            asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING));
             asker.add(new Info("holderName", "Credit Card Holder Name:", Info.DataType.STRING));
             user.setCreditCard(new CreditCard(asker.askQuestions()));
         }
@@ -68,8 +68,8 @@ public class UserHandler extends BaseHandler {
             userID = response;
             userName = user.getName();
             System.out.println("Welcome, " + userName);
-            tm.startSession();
         }
+        tm.startSession();
     }
 
     public void login(){
@@ -82,15 +82,22 @@ public class UserHandler extends BaseHandler {
     public void showUsers(String type){
         isHost = type.equals("login as host");
         ArrayList<String> users = isHost ? DBTalker.getAllHostsNamesAndIDs() : DBTalker.getAllRentersNamesAndIDs();
-        decider.setOptions(users);
 
-        String selected = decider.displayOptions();
-        String[] parts = selected.split(":");
+        System.out.println("Who are you?");
 
-        userName = parts[0];
-        userID = parts[1];
-        tm.setUserID(userID);
-        System.out.println("Welcome back, " + userName);
+        if(!users.isEmpty()) {
+            decider.setOptions(users);
+            String selected = decider.displayOptions();
+            String[] parts = selected.split(":");
+
+            userName = parts[0];
+            userID = parts[1];
+            tm.setUserID(userID);
+            System.out.println("Welcome back, " + userName);
+        } else{
+            Terminal.printNotFound("users");
+            tm.startSession();
+        }
     }
 
     public void deleteUserConfirmation(){

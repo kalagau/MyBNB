@@ -71,17 +71,10 @@ public class ReportsHandler extends BaseHandler {
 
     public void hostsByNumberOfListings() {
         decider.add("Country");
-        decider.add("Country and City");
-        String type = decider.displayOptions();
+        decider.add("City");
+        Boolean isCity = decider.displayOptions().equals("City");
 
-        asker.add(new Info("country", "Country:", DataType.STRING));
-        if (type.contains("City"))
-            asker.add(new Info("city", "City:", DataType.STRING));
-
-        Map map = asker.askQuestions();
-        String country = (String) map.get("country");
-        String city = (String) map.getOrDefault("city", "");
-        DBReportsTalker.hostsByNumberOfListings(country, city);
+        DBReportsTalker.hostsByNumberOfListings(isCity);
     }
 
     public void hostsWithMoreThanTenth() {
@@ -103,20 +96,14 @@ public class ReportsHandler extends BaseHandler {
         Date start = (Date) map.get("startDate");
         Date end = (Date) map.get("endDate");
         DBReportsTalker.rentersByNumberOfBookings(start, end, isCity);
-
-        Pair<Double, String> bla = new Pair<>(1.2, "hello");
-        ArrayList<Pair> L = new ArrayList<>();
-        L.sort((o1, o2) -> {
-            if ((Double) o1.getKey() < (Double) o2.getKey())
-                return -1;
-            if (o1.getKey() == o2.getKey())
-                return 0;
-            return 1;
-        });
     }
 
     public void hostsAndRentersWithMostCancelations() {
-        DBReportsTalker.hostsAndRentersWithMostCancelations();
+
+        decider.add("Hosts");
+        decider.add("Renters");
+        Boolean isHost = decider.displayOptions().equals("Hosts");
+        DBReportsTalker.hostsAndRentersWithMostCancelations(isHost);
     }
 
     public void popularNounPhrasePerListing() {

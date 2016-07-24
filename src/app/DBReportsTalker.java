@@ -33,7 +33,7 @@ public class DBReportsTalker {
         }
     }
 
-    public static int hostsByNumberOfListings(String country, String city){
+    public static int hostsByNumberOfListings(Boolean isCity){
          try { return DBHelper.rankHosts(true); }
         catch (Exception e) {
             errorOccurred(e);
@@ -57,20 +57,22 @@ public class DBReportsTalker {
         }
     }
 
-    public static void hostsAndRentersWithMostCancelations(){
-//        try { return DBHelper.getHostListings(userID); }
+    public static int hostsAndRentersWithMostCancelations(Boolean isHost){
+//        try { return DBHelper.getHostListings(isHost); }
 //        catch (Exception e) {
 //            errorOccurred(e);
 //            return -1;
 //        }
+        return 1;
     }
 
-    public static void popularNounPhrasePerListing(){
+    public static int popularNounPhrasePerListing(){
 //        try { return DBHelper.reportNounPhrases(); }
 //        catch (Exception e) {
 //            errorOccurred(e);
 //            return -1;
 //        }
+        return 1;
     }
 
     private static void errorOccurred(Exception e){
