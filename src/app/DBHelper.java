@@ -929,7 +929,7 @@ import java.util.Map;
                                 cancelled = 2;
                             }
 
-                            /fill
+                            //fill
                             updRental.setInt(1,cancelled);
                             updRental.setInt(2, Integer.parseInt(bookingID));
                             updateCalendar.setInt(1,Integer.parseInt(bookingID));
@@ -1504,7 +1504,7 @@ import java.util.Map;
                         dist = dist * 60 * 1.1515;
                         if (unit == 'K') {
                             dist = dist * 1.609344;
-                        } 
+                        }
                         return (dist);
                     }
 
