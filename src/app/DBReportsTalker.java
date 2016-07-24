@@ -9,24 +9,16 @@ import java.sql.Date;
  */
 public class DBReportsTalker {
 
-    public static int numberOfBookingsPerCityByDate(Date start, Date end){
-         try { return DBHelper.reportRentalRanksByDate(null, null, true); }
+    public static int numberOfBookingsPerCityByDate(Date start, Date end, Boolean postal){
+         try { return DBHelper.reportRentalsByDate(start, end, postal); }
         catch (Exception e) {
             errorOccurred(e);
             return -1;
         }
     }
 
-    public static int numberOfBookingsPerCityByZip(String zip){
-         try { return DBHelper.reportRentalRanksByDate(null, null, true); }
-        catch (Exception e) {
-            errorOccurred(e);
-            return -1;
-        }
-    }
-
-    public static int numberOfListings(String country, String city, String postal){
-         try { return DBHelper.reportRentalRanksByDate(null, null, true); }
+    public static int numberOfListings(int type){
+         try { return DBHelper.reportListings(type); }
         catch (Exception e) {
             errorOccurred(e);
             return -1;
@@ -34,14 +26,14 @@ public class DBReportsTalker {
     }
 
     public static int hostsByNumberOfListings(Boolean isCity){
-         try { return DBHelper.rankHosts(true); }
+         try { return DBHelper.rankHosts(isCity); }
         catch (Exception e) {
             errorOccurred(e);
             return -1;
         }
     }
 
-    public static int hostsWithMoreThanTenth(String country, String city){
+    public static int hostsWithMoreThanTenth(){
          try { return DBHelper.commercialHosts(); }
         catch (Exception e) {
             errorOccurred(e);
@@ -58,21 +50,19 @@ public class DBReportsTalker {
     }
 
     public static int hostsAndRentersWithMostCancelations(Boolean isHost){
-//        try { return DBHelper.getHostListings(isHost); }
-//        catch (Exception e) {
-//            errorOccurred(e);
-//            return -1;
-//        }
-        return 1;
+        try { return DBHelper.reportCancelledRentals(isHost); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1;
+        }
     }
 
     public static int popularNounPhrasePerListing(){
-//        try { return DBHelper.reportNounPhrases(); }
-//        catch (Exception e) {
-//            errorOccurred(e);
-//            return -1;
-//        }
-        return 1;
+        try { return DBHelper.reportNounPhrases(); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1;
+        }
     }
 
     private static void errorOccurred(Exception e){

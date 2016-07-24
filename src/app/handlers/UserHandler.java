@@ -57,7 +57,7 @@ public class UserHandler extends BaseHandler {
 
         if (user.isRenter()) {
             asker.add(new Info("number", "Credit Card Number:", Info.DataType.STRING, Validators.ValidatorKeys.ALL_NUMBERS));
-            asker.add(new Info("expiryDate", "Credit Card Expiry Date:", Info.DataType.STRING, Validators.ValidatorKeys.CC_EXPIRY));
+            asker.add(new Info("expiryDate", "Credit Card Expiry Date: (mm/yyyy)", Info.DataType.STRING, Validators.ValidatorKeys.CC_EXPIRY));
             asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING));
             asker.add(new Info("holderName", "Credit Card Holder Name:", Info.DataType.STRING));
             user.setCreditCard(new CreditCard(asker.askQuestions()));

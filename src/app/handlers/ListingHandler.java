@@ -72,7 +72,7 @@ public class ListingHandler extends BaseHandler {
     public void showMyListingInfo(){
         String listingID = getIDFromMySelectedListing();
         if(!listingID.isEmpty()){
-
+            printListingInfo(listingID);
         }else
             Terminal.printNotFound("listings");
 
@@ -97,7 +97,7 @@ public class ListingHandler extends BaseHandler {
 
     public void printListingInfo(String listingID){
         Listing listing = DBTalker.getListingInfo(listingID);
-
+        System.out.println(listing.toString());
     }
 
     public ArrayList<String> getFilteredListings(){
@@ -170,8 +170,7 @@ public class ListingHandler extends BaseHandler {
     }
 
     public static String getListingID(String listingText){
-        return "";
-//        return listingText.split(":")[0];
+        return listingText.split(":")[0];
     }
 
 }

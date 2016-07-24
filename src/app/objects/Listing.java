@@ -19,11 +19,30 @@ public class Listing {
         this.postalCode = (String)listing.get("postalCode");
         this.country = (String)listing.get("country");
         this.city = (String)listing.get("city");
-        this.longitude = BigDecimal.valueOf((double)listing.get("longitude"));
-        this.latitude = BigDecimal.valueOf((double)listing.get("latitude"));
-        this.mainPrice = BigDecimal.valueOf((double)listing.get("mainPrice"));
         this.numberOfBedrooms = (int)listing.get("numberOfBedrooms");
         this.type = (String)listing.get("type");
+
+        if (listing.get("longitude") instanceof BigDecimal) this.longitude = (BigDecimal)listing.get("longitude");
+        else this.longitude = BigDecimal.valueOf((double)listing.get("longitude"));
+        if (listing.get("latitude") instanceof BigDecimal) this.latitude = (BigDecimal)listing.get("latitude");
+        else this.latitude = BigDecimal.valueOf((double)listing.get("latitude"));
+        if (listing.get("mainPrice") instanceof BigDecimal) this.mainPrice = (BigDecimal)listing.get("mainPrice");
+        else this.mainPrice = BigDecimal.valueOf((double)listing.get("mainPrice"));
+    }
+
+    @Override
+    public String toString() {
+        return  "\nAddress: " +
+                "\n   Postal Code: " + postalCode +
+                "\n   Country: " + country +
+                "\n   City: " + city +
+                "\nLocation: " +
+                "\n   Longitude: " + longitude +
+                "\n   Latitude: " + latitude +
+                "\nType: " + type +
+                "\nPrice: " + mainPrice +
+                "\nNumber of Bedrooms: " + numberOfBedrooms +
+                "\nCharacteristics: " + characteristics.toString() + "\n";
     }
 
     public BigDecimal getMainPrice() {
