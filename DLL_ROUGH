@@ -20,7 +20,7 @@ END
 delimiter ;
 
 
->>delimiter |
+delimiter |
 CREATE TRIGGER addressUpd BEFORE UPDATE ON address
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
@@ -159,7 +159,7 @@ isActive BOOLEAN NOT NULL) ENGINE INNODB;
 
 create table  renter(
 user_id int(50) NOT NULL,
-card_number VAARCHAR(19) NOT NULL,
+card_number VARCHAR(19) NOT NULL,
 FOREIGN KEY (user_id) REFERENCES user(user_id),
 FOREIGN KEY (card_number) REFERENCES credit_card(card_number),
 PRIMARY KEY(user_id),
@@ -167,7 +167,7 @@ isActive BOOLEAN NOT NULL) ENGINE INNODB;
 
 //Listing
 
-create table listaing (listing_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+create table listing (listing_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 isActive BOOLEAN NOT NULL DEFAULT '1',
 user_id int(50) NOT NULL ,
 location_id int(50) NOT NULL ,
@@ -213,7 +213,7 @@ CHECK(num_bedrooms > 0 AND num_bedrooms < 25 ),
 CHECK(price>0)) ENGINE INNODB;
 
 delimiter |
-CREATE TRIGGER listaingIns BEFORE INSERT ON listaing
+CREATE TRIGGER listingIns BEFORE INSERT ON listaing
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
 IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms > 25 OR  NEW.price < 0 THEN
@@ -226,7 +226,7 @@ delimiter ;
 
 
 	delimiter |
-	CREATE TRIGGER listaingUpd BEFORE UPDATE ON listaing
+	CREATE TRIGGER listingUpd BEFORE UPDATE ON listaing
 	FOR EACH ROW BEGIN
 	DECLARE msg varchar(255);
 	IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms >= 25 OR  NEW.price < 0 THEN	
@@ -289,9 +289,7 @@ start_date DATE NOT NULL,
 end_date DATE NOT NULL,
 price DECIMAL(6,2) NOT NULL,
 CHECK(start_date  <= end_date),
-CHECK(cancelled_By>= 0 and  cancelled_By <=2),
-
-) ENGINE INNODB;
+CHECK(cancelled_By>= 0 and  cancelled_By <=2)) ENGINE INNODB;
 
 delimiter |
 CREATE TRIGGER rentalIns BEFORE INSERT ON rental
