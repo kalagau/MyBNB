@@ -65,6 +65,7 @@ public class UserHandler extends BaseHandler {
 
         String response = DBTalker.createNewUser(user);
         if (response != null){
+            isHost = !user.isRenter();
             userID = response;
             userName = user.getName();
             System.out.println("Welcome, " + userName);
