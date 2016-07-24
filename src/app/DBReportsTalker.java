@@ -9,32 +9,73 @@ import java.sql.Date;
  */
 public class DBReportsTalker {
 
-
-    public static void numberOfBookingsPerCityByDate(Date start, Date end){
-
+    public static int numberOfBookingsPerCityByDate(Date start, Date end){
+         try { return DBHelper.reportRentalRanksByDate(null, null, true); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1;
+        }
     }
-    public static void numberOfBookingsPerCityByZip(String zip){
 
+    public static int numberOfBookingsPerCityByZip(String zip){
+         try { return DBHelper.reportRentalRanksByDate(null, null, true); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1;
+        }
     }
-    public static void numberOfListings(String country, String city, String postal){
 
+    public static int numberOfListings(String country, String city, String postal){
+         try { return DBHelper.reportRentalRanksByDate(null, null, true); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1;
+        }
     }
-    public static void hostsByNumberOfListings(String country, String city){
 
+    public static int hostsByNumberOfListings(String country, String city){
+         try { return DBHelper.rankHosts(true); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1;
+        }
     }
-    public static void hostsWithMoreThanTenth(String country, String city){
 
+    public static int hostsWithMoreThanTenth(String country, String city){
+         try { return DBHelper.commercialHosts(); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1;
+        }
     }
-    public static void rentersByNumberOfBookings(){
 
+    public static int rentersByNumberOfBookings(Date start, Date end, Boolean isCity){
+        try { return DBHelper.reportRentalRanksByDate(start, end, isCity); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1;
+        }
     }
-    public static void rentersByNumberOfBookingsByCity(){
 
-    }
     public static void hostsAndRentersWithMostCancelations(){
-
+//        try { return DBHelper.getHostListings(userID); }
+//        catch (Exception e) {
+//            errorOccurred(e);
+//            return -1;
+//        }
     }
+
     public static void popularNounPhrasePerListing(){
-
+//        try { return DBHelper.reportNounPhrases(); }
+//        catch (Exception e) {
+//            errorOccurred(e);
+//            return -1;
+//        }
     }
+
+    private static void errorOccurred(Exception e){
+        System.out.println("An error has occurred");
+        e.printStackTrace();
+    }
+
 }

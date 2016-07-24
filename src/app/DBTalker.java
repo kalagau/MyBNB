@@ -26,7 +26,7 @@ public class DBTalker {
     }
 
     public static ArrayList<String> getListings(ListingFilter filter) {
-        try { return null; }
+        try { return DBHelper.getListings(filter); }
         catch (Exception e) {
             errorOccurred(e);
             return null;
@@ -94,7 +94,7 @@ public class DBTalker {
     }
 
     public static String createBooking(String userID, String listingID, Rental rental){
-        try { return null; }
+        try { return DBHelper.createBooking(userID, listingID, rental); }
         catch (Exception e) {
             errorOccurred(e);
             return null;
@@ -117,16 +117,16 @@ public class DBTalker {
         }
     }
 
-    public static Listing setListingPrice(String listingID, CalendarEntryRange calendarEntryRange) {
-        try { return null; }
+    public static String setListingPrice(String listingID, CalendarEntryRange calendarEntryRange) {
+        try { return DBHelper.setListingPrice(listingID, calendarEntryRange); }
         catch (Exception e) {
             errorOccurred(e);
             return null;
         }
     }
 
-    public static Listing setListingAvailability(String listingID, CalendarEntryRange calendarEntryRange) {
-        try { return null; }
+    public static String setListingAvailability(String listingID, CalendarEntryRange calendarEntryRange) {
+        try { return DBHelper.setListingAvailability(listingID, calendarEntryRange); }
         catch (Exception e) {
             errorOccurred(e);
             return null;

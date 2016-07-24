@@ -9,10 +9,10 @@ import app.modules.Decider;
 import app.objects.Info;
 import app.objects.Info.DataType;
 import app.Validators.ValidatorKeys;
+import javafx.util.Pair;
 
 import java.sql.Date;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Created by Daniel on 2016-07-23.
@@ -23,7 +23,7 @@ public class ReportsHandler extends BaseHandler {
         super(decider, asker, userID, sc, tm);
     }
 
-    public void startReports(){
+    public void startReports() {
         decider.add("Number of bookings per city by...", this::numberOfBookingsPerCity);
         decider.add("Number of listings per...", this::numberOfListings);
         decider.add("Hosts by number of listing per...", this::hostsByNumberOfListings);
@@ -35,78 +35,91 @@ public class ReportsHandler extends BaseHandler {
         decider.add("Back", tm::startSession);
     }
 
-    public void numberOfBookingsPerCity(){
+    public void numberOfBookingsPerCity() {
         decider.add("Date Range");
         decider.add("Postal Code");
-        if(decider.displayOptions().equals("Date Range")){
+        if (decider.displayOptions().equals("Date Range")) {
             asker.add(new Info("startDate", "Start Date:", DataType.DATE, ValidatorKeys.START_DATE));
             asker.add(new Info("endDate", "End Date:", DataType.DATE, ValidatorKeys.END_DATE));
             Map map = asker.askQuestions();
-            DBReportsTalker.numberOfBookingsPerCityByDate((Date)map.get("startDate"), (Date) map.get("endDate"));
+            DBReportsTalker.numberOfBookingsPerCityByDate((Date) map.get("startDate"), (Date) map.get("endDate"));
         } else {
             asker.add(new Info("postalCode", "Postal Code:", DataType.STRING, ValidatorKeys.POSTAL_CODE));
             Map map = asker.askQuestions();
-            DBReportsTalker.numberOfBookingsPerCityByZip((String)map.get("postalCode"));
+            DBReportsTalker.numberOfBookingsPerCityByZip((String) map.get("postalCode"));
         }
     }
 
-    public void numberOfListings(){
+    public void numberOfListings() {
         decider.add("Country");
         decider.add("Country and City");
         decider.add("Country, City, and Postal Code");
         String type = decider.displayOptions();
 
         asker.add(new Info("country", "Country:", DataType.STRING));
-        if(type.contains("City"))
+        if (type.contains("City"))
             asker.add(new Info("city", "City:", DataType.STRING));
-        if(type.contains("Postal"))
+        if (type.contains("Postal"))
             asker.add(new Info("postal", "Postal Code:", DataType.STRING, ValidatorKeys.POSTAL_CODE));
 
         Map map = asker.askQuestions();
-        String country = (String)map.get("country");
-        String city = (String)map.getOrDefault("city", "");
-        String postal = (String)map.getOrDefault("postal", "");
+        String country = (String) map.get("country");
+        String city = (String) map.getOrDefault("city", "");
+        String postal = (String) map.getOrDefault("postal", "");
         DBReportsTalker.numberOfListings(country, city, postal);
     }
 
-    public void hostsByNumberOfListings(){
+    public void hostsByNumberOfListings() {
         decider.add("Country");
         decider.add("Country and City");
         String type = decider.displayOptions();
 
         asker.add(new Info("country", "Country:", DataType.STRING));
-        if(type.contains("City"))
+        if (type.contains("City"))
             asker.add(new Info("city", "City:", DataType.STRING));
 
         Map map = asker.askQuestions();
-        String country = (String)map.get("country");
-        String city = (String)map.getOrDefault("city", "");
+        String country = (String) map.get("country");
+        String city = (String) map.getOrDefault("city", "");
         DBReportsTalker.hostsByNumberOfListings(country, city);
     }
 
-    public void hostsWithMoreThanTenth(){
+    public void hostsWithMoreThanTenth() {
         asker.add(new Info("country", "Country:", DataType.STRING));
         asker.add(new Info("city", "City:", DataType.STRING));
 
         Map map = asker.askQuestions();
-        String country = (String)map.get("country");
-        String city = (String)map.get("city");
+        String country = (String) map.get("country");
+        String city = (String) map.get("city");
         DBReportsTalker.hostsWithMoreThanTenth(country, city);
     }
 
-    public void rentersByNumberOfBookings(){
+    public void rentersByNumberOfBookings() {
         asker.add(new Info("rankedByCity", "Rank by city? (y/n)", DataType.BOOLEAN));
-        if((Boolean)asker.askQuestions().get("rankedByCity"))
-            DBReportsTalker.rentersByNumberOfBookingsByCity();
-        else
-            DBReportsTalker.rentersByNumberOfBookings();
+        asker.add(new Info("startDate", "Start Date:", DataType.DATE, ValidatorKeys.START_DATE));
+        asker.add(new Info("endDate", "End Date:", DataType.DATE, ValidatorKeys.END_DATE));
+        Map map = asker.askQuestions();
+        Boolean isCity = (Boolean) map.get("rankedByCity");
+        Date start = (Date) map.get("startDate");
+        Date end = (Date) map.get("endDate");
+        DBReportsTalker.rentersByNumberOfBookings(start, end, isCity);
+
+        Pair<Double, String> bla = new Pair<>(1.2, "hello");
+        ArrayList<Pair> L = new ArrayList<>();
+        L.sort((o1, o2) -> {
+            if ((Double) o1.getKey() < (Double) o2.getKey())
+                return -1;
+            if (o1.getKey() == o2.getKey())
+                return 0;
+            return 1;
+        });
     }
 
-    public void hostsAndRentersWithMostCancelations(){
+    public void hostsAndRentersWithMostCancelations() {
         DBReportsTalker.hostsAndRentersWithMostCancelations();
     }
 
-    public void popularNounPhrasePerListing(){
+    public void popularNounPhrasePerListing() {
         DBReportsTalker.popularNounPhrasePerListing();
     }
 
