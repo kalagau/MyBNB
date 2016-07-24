@@ -37,8 +37,8 @@ import java.util.Map;
 
                     public static void createConnection() throws ClassNotFoundException, SQLException {
                         //Register JDBC driver
-                        if (active)
-                            return;
+                        //if (active)
+                        //    return;
                         try {
                             Class.forName(dbClassName);
                         } catch (ClassNotFoundException e) {
@@ -57,8 +57,8 @@ import java.util.Map;
                     }
 
                     public static void closeConnection() throws SQLException {
-                        if (!active)
-                            return;
+                        //if (!active)
+                        //   return;
                         try {
                             //Establish connection
                             conn.close();
@@ -76,7 +76,7 @@ import java.util.Map;
                         ResultSet rs = null;
                         try {
                             createConnection();
-                            usrStmt = conn.prepareStatement("SELECT SIN,address_id FROM user where SIN=?;");
+                            usrStmt = conn.prepareStatement("SELECT user_id,SIN,address_id FROM user where SIN=?;");
 
                             //WARNINBGGGGGG
                             usrStmt.setString(1, user.getSIN());
@@ -358,7 +358,7 @@ import java.util.Map;
                             renterData = conn.prepareStatement("SELECT renter.user_id,user.name FROM renter INNER JOIN user ON user.user_id=renter.user_id;");
                             rs = renterData.executeQuery();
                             while (rs.next())
-                                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("host.user_id")));
+                                list.add(rs.getString("user.name")+ ":" + String.valueOf(rs.getInt("user_id")));
 
                             rs.close();
                             renterData.close();
@@ -569,13 +569,13 @@ import java.util.Map;
                         ResultSet rs = null;
                         try {
                             createConnection();
-                            listings = conn.prepareStatement("SELECT listing_id type,address.city,address.country,address.postal_code FROM listing " +
+                            listings = conn.prepareStatement("SELECT listing_id, type,address.city,address.country,address.pCode FROM listing " +
                                     "INNER JOIN address ON listing.address_id=address.address_id WHERE listing.user_id=?;");
                             listings.setInt(1,Integer.parseInt(userID));
                             rs = listings.executeQuery();
                             while (rs.next())
-                                list.add(String.format("%d:Type:%s:Country:%s:City:%s:Postal Code:%s",rs.getInt("listing_id"),
-                                        rs.getString("type"),rs.getString("address.country"),rs.getString("address.city"),rs.getString("address.pCode")));
+                                list.add(String.format("%d:%s:%s:%s:%s",rs.getInt("listing_id"),
+                                        rs.getString("type"),rs.getString("country"),rs.getString("city"),rs.getString("pCode")));
 
 
                             rs.close();
@@ -905,18 +905,20 @@ import java.util.Map;
                             createConnection();
                             listings = conn.prepareStatement("SELECT start_date,end_date,rental_id,listing.listing_id,address.city,address.country FROM rental " +
                                     "INNER JOIN listing ON listing.listing_id=rental.listing_id INNER JOIN address ON" +
-                                    " listing.address_id=address.address_id WHERE listing.user_id=? AND rental.end_date >= CURDATE());");
+                                    " listing.address_id=address.address_id WHERE listing.user_id=? AND rental.end_date >= CURDATE();");
                             listings.setInt(1,Integer.parseInt(userID));
+
                             rs = listings.executeQuery();
 
-                            DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-                            String start = df.format(rs.getDate("start_date"));
-                            String end = df.format(rs.getDate("start_date"));
-                            while (rs.next())
-                                list.add(String.format("%d:%s:%s:%s:%s:%s:%s ",rs.getInt("rental_id")
-                                        ,rs.getInt("listing_id"), rs.getString("country"),rs.getString("city"),start,end));
 
+                            while (rs.next()) {
+                                DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+                                String start = df.format(rs.getDate("start_date"));
+                                String end = df.format(rs.getDate("start_date"));
+                                list.add(String.format("%d:%s:%s:%s:%s:%s:%s ", rs.getInt("rental_id")
+                                        , rs.getInt("listing_id"), rs.getString("country"), rs.getString("city"), start, end));
 
+                            }
                             rs.close();
                             listings.close();
                             closeConnection();
