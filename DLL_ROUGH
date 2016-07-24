@@ -5,13 +5,13 @@ address_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 pCode varchar(6) NOT NULL, 
 country VARCHAR(255) NOT NULL, 
 city VARCHAR(255) NOT NULL,
-CHECK(CHAR_LENGTH(pCode) >= 6 AND CHAR_LENGTH(pCode) <= 6)) ENGINE INNODB;
+CHECK(CHAR_LENGTH(pCode) = 6)) ENGINE INNODB;
 
 delimiter |
 CREATE TRIGGER addressIns BEFORE INSERT ON address
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF CHAR_LENGTH(NEW.pCode) <= 5 OR CHAR_LENGTH(NEW.pCode) >= 7 THEN
+IF CHAR_LENGTH(NEW.pCode) < 6 OR CHAR_LENGTH(NEW.pCode) >6 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -24,7 +24,7 @@ delimiter ;
 CREATE TRIGGER addressUpd BEFORE UPDATE ON address
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF CHAR_LENGTH(NEW.pCode) <= 5 OR CHAR_LENGTH(NEW.pCode) >= 7 THEN
+IF CHAR_LENGTH(NEW.pCode) <6 OR CHAR_LENGTH(NEW.pCode) > 6 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
@@ -40,16 +40,14 @@ create table credit_card (
 card_number VARCHAR(19) NOT NULL PRIMARY KEY,
 name VARCHAR(255) NOT NULL,
 CCV VARCHAR(4) NOT NULL,
-expiry_date DATE NOT NULL,
-CHECK(CCV > '0' AND CCV <= '9999'),
-check(expiry_date >= CURDATE()), 
-check(card_number>='100000000000' and card_number <= '9999999999999999999' )) ENGINE INNODB;
+expiry_date VARCHAR(7) NOT NULL,
+CHECK(CCV > '0' AND CCV <= '9999')) ENGINE INNODB;
 
 delimiter |
 CREATE TRIGGER credit_cardIns BEFORE INSERT ON credit_card
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.CCV <= '0' OR NEW.CCV > '9999' OR NEW.expiry_date < CURDATE() OR NEW.card_number < '1000000000000' OR NEW.card_number > '9999999999999999999' THEN
+IF NEW.CCV <= '0' OR NEW.CCV > '9999'  THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -62,7 +60,7 @@ delimiter |
 CREATE TRIGGER credit_cardUpd BEFORE UPDATE ON credit_card
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.CCV <= '0' OR NEW.CCV > '9999' OR NEW.expiry_date < CURDATE() OR NEW.card_number < '1000000000000' OR NEW.card_number > '9999999999999999999' THEN
+IF NEW.CCV <= '0' OR NEW.CCV > '9999'  THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
@@ -211,13 +209,14 @@ Iron BOOLEAN NOT NULL DEFAULT 0,
 Hair_Dryer BOOLEAN NOT NULL DEFAULT 0, 
 Laptop_Workspace BOOLEAN NOT NULL DEFAULT 0,
 CHECK(type IN ('full house','room','apartment')), 
-CHECK(num_bedrooms > 0 AND num_bedrooms < 25 )) ENGINE INNODB;
+CHECK(num_bedrooms > 0 AND num_bedrooms < 25 ),
+CHECK(price>0)) ENGINE INNODB;
 
 delimiter |
 CREATE TRIGGER listingIns BEFORE INSERT ON listing
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms > 25 THEN
+IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms > 25 OR  NEW.price < 0 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -230,7 +229,7 @@ delimiter |
 CREATE TRIGGER listingUpd BEFORE UPDATE ON listing
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms >= 25 THEN	
+IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms >= 25 OR  NEW.price < 0 THEN	
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
@@ -364,7 +363,6 @@ END IF;
 END
 |
 delimiter ;
-
 
 
 
