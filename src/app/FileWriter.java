@@ -14,10 +14,10 @@ public class FileWriter {
         String filename = baseFileName + new SimpleDateFormat("yyyyMMddhhmm'.txt'").format(new Date());
         File f =  new File(filename);
         f.createNewFile();
-        return fileName;
+        return filename;
     }
 
-    public static String writeToFile(ArrayList<String> list, String fileName) throws Exception {
+    public static void writeToFile(ArrayList<String> list, String fileName) throws Exception {
 
         BufferedWriter bw  = new BufferedWriter(new java.io.FileWriter(fileName,true));
         for (String data: list){

@@ -5,6 +5,7 @@
             import app.objects.Rental;
             import app.objects.CalendarEntryRange;
             import app.objects.ListingFilter;
+        import javafx.util.Pair;
 
 
         import java.math.BigDecimal;
@@ -1217,36 +1218,162 @@
 
 
                 //QUERY SEARCHING_________________________________________________
-                public static ArrayList<String> getListings(ListingFilter filter) throws Exception{
-                    PreparedStatement exactSearch = null;
 
+                public static ArrayList<String> getListings(ListingFilter filter) throws Exception{
+                    ArrayList<String> list = new ArrayList<String>();
+                    ArrayList<Pair<Double,String>> distance = new ArrayList<Pair<Double,String>>();
+                    PreparedStatement exactSearch = null;
+                    PreparedStatement calendarCheck = null;
+                    ResultSet rs = null;
+                    ResultSet rsCal = null;
 
 
                     try {
 
                         createConnection();
-                        if (!filter.getCountry().equals("")){
-                            
+                        if (!filter.getCountry().equals("")) {
+                            exactSearch = conn.prepareStatement("select listing_id from listing INNER JOIN " +
+                                    "address on listing.address_id = address.address_id WHERE address.city=? " +
+                                    "and address.country=? and address.postal_code=?;");
+                            exactSearch.setString(1, filter.getCity());
+                            exactSearch.setString(2, filter.getCountry());
+                            exactSearch.setString(3, filter.getPostalCode());
+                            rs = exactSearch.executeQuery();
+                            if (rs.next()) {
+                                list.add(String.format("%d:%s:%s:%s", rs.getInt(1), filter.getCountry(), filter.getCity(),
+                                        filter.getPostalCode()));
+
+                            }
+
+
+                            rs.close();
+
+                        } else {
+                            String sql = "SELECT * FROM listing INNER JOIN (select pCode,city,country,address_id as addr_id from address)a ON a.addr_id=listing.address_id INNER JOIN (select latitude,longitude,location_id as loc_id from location)b ON b.loc_id=listing.location_id WHERE listing.isActive=TRUE";
+                            if (!filter.getPostalCode().equals("")) {
+                                String sub = filter.getPostalCode().substring(0, 3);
+                                sql = "SELECT * from (" + sql + ")c where pCode REGEXP '^" + sub + "|[0,9][a,Z][0-9]$' ";
+
+
+                            }
+                            if (!filter.) {
+                                if (filter.isSortAscending()) {
+                                    sql = "SELECT * FROM (" + sql + ")d ORDER BY price ASC";
+                                } else {
+                                    sql = "SELECT * FROM (" + sql + ")d ORDER BY price DESC";
+                                }
+
+
+                            }
+                            if (!filter.getLowestPrice().toPlainString().equals("-1")) {
+                                if (!filter.getHighestPrice().toPlainString().equals("-1")) {
+                                    sql = "SELECT * FROM (" + sql + ")e where price>=? and price <=?";
+                                    exactSearch = conn.prepareStatement(sql + ";");
+                                    exactSearch.setBigDecimal(1,filter.getLowestPrice());
+                                    exactSearch.setBigDecimal(2,filter.getHighestPrice());
+
+
+                                } else {
+                                    sql = "SELECT * FROM (" + sql + ")e where price>=?";
+                                    exactSearch = conn.prepareStatement(sql + ";");
+                                    exactSearch.setBigDecimal(1,filter.getLowestPrice());
+
+                                }
+
+
+
+                            } else if(!filter.getHighestPrice().toPlainString().equals("-1")){
+                                sql = "SELECT * FROM (" + sql + ")e where price<=?";
+                                exactSearch = conn.prepareStatement(sql + ";");
+                                exactSearch.setBigDecimal(2,filter.getHighestPrice());
+
+
+                            }else {
+                                exactSearch = conn.prepareStatement(sql + ";");
+
+                            }
+
+
+                            rs = exactSearch.executeQuery();
+                            while (rs.next()) {
+                                int listingID = rs.getInt("listing_id");
+                                boolean passCheck = true;
+                                if (filter.getFirstDate() != null) {
+                                    calendarCheck = conn.prepareStatement("select calendar_entry_id from calendar_entry where listing_id =? and is_available = ? and date>=? and date<=?; ");
+                                    calendarCheck.setInt(1, listingID);
+                                    calendarCheck.setBoolean(2, false);
+                                    calendarCheck.setDate(3, filter.getFirstDate());
+                                    calendarCheck.setDate(3, filter.getLastDate());
+                                    rsCal = calendarCheck.executeQuery();
+                                    if (rsCal.next())
+                                        passCheck = false;
+
+                                }
+                                if (passCheck && !(filter.getCharacteristics().size() == 0)) {
+                                    for (String s : filter.getCharacteristics()) {
+                                        if (!rsCal.getBoolean(s)) {
+                                            passCheck = false;
+                                        }
+
+                                    }
+                                }
+                                String listing = String.format("%d:%s:%s:%s:%s:", listingID, rs.getString("Country"),
+                                        rs.getString("City"), rs.getString("pCode"),
+                                        rs.getBigDecimal("price").toPlainString());
+                                if (passCheck) {
+                                    list.add(listing);
+                                }
+                                if (passCheck && !filter.isSortByPrice()) {
+                                    double latitude = rs.getBigDecimal("latitude").doubleValue();
+                                    double longitude = rs.getBigDecimal("longitude").doubleValue();
+                                    double calcDistance = distance(latitude, longitude, filter.getLatitude().doubleValue()
+                                            , filter.getLongitude().doubleValue(), 'K');
+                                    listing += String.valueOf(calcDistance) + " km";
+                                    distance.add(new Pair<Double,String>(calcDistance, listing));
+
+
+                                }
+
+
+                            }
+
+
+                        }
+                        rsCal.close();
+                        calendarCheck.close();
+                        rs.close();
+                        exactSearch.close();
+                        closeConnection();
+                        if (distance.size()==0){
+                            return list;
+                        }else{
+                            if (filter.isSortAscending()){
+                                distance.sort((o1, o2) -> ((Double)o1.getKey()).compareTo((Double)o1.getKey()));
+                            }else{
+                                distance.sort((o1, o2) -> -((Double)o1.getKey()).compareTo((Double)o1.getKey()));
+
+                            }
+                            ArrayList<String> sortedList = new ArrayList<String>();
+                            for (int i=0;i<distance.size() ;i++){
+                                String data = distance.get(i).getValue();
+                                sortedList.add(data);
+                            }
+                            return sortedList;
                         }
 
 
-                        closeConnection();
+
 
 
                     } catch (Exception e) {
                         throw e;
                     } finally {
                         try {
-                            rsInsRental.close();
-                            insertRental.close();
-                            rsGetPrice.close();
-                            getPrice.close();
-                            insertCalendar.close();
-                            updateCalendar.close();
-                            rsPrice.close();
-                            listingPrice.close();
+                            rsCal.close();
+                            calendarCheck.close();
                             rs.close();
-                            conflicts.close();
+                            exactSearch.close();
+                            closeConnection();
                         } catch (Exception e) {
                             int a = 0;
                         }
@@ -1255,7 +1382,29 @@
                 }
 
 
+                private static double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
+                    double theta = lon1 - lon2;
+                    double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+                    dist = Math.acos(dist);
+                    dist = rad2deg(dist);
+                    dist = dist * 60 * 1.1515;
+                    if (unit == 'K') {
+                        dist = dist * 1.609344;
+                    } else if (unit == 'N') {
+                        dist = dist * 0.8684;
+                    }
+                    return (dist);
+                }
 
+
+                private static double deg2rad(double deg) {
+                    return (deg * Math.PI / 180.0);
+                }
+
+
+                private static double rad2deg(double rad) {
+                    return (rad * 180.0 / Math.PI);
+                }
 
 
 
