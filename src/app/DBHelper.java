@@ -2007,8 +2007,8 @@ import java.util.Map;
                         PreparedStatement text = null;
                         ResultSet rs = null;
                         ResultSet rsText = null;
-                        String sql = "select listing_id from listing where isActive=1";
-                        String textSQL = "SELECT description from listing INNER JOIN review on listing.listing_id=review.listing_id where review.listing_id=?; ";
+                        String sql = "select listing_id from listing  ";
+                        String textSQL = "SELECT description from listing INNER JOIN review on listing.listing_id=review.listing_id where review.type=2 and review.listing_id=?; ";
                         int result = -1;
                         try {
                             createConnection();
@@ -2016,23 +2016,30 @@ import java.util.Map;
                             text = conn.prepareStatement(textSQL);
 
                             rs = listings.executeQuery();
-                            ArrayList<String> inputList = new ArrayList<String>();
-                            ArrayList<String> outputList = new ArrayList<String>();
+                            ArrayList<String> fin = new ArrayList<String>();
+
                             while (rs.next()) {
+                                ArrayList<String> inputList = new ArrayList<String>();
+                                ArrayList<String> outputList = new ArrayList<String>();
                                 result = rs.getInt(1);
                                 text.setInt(1, result);
                                 rsText = text.executeQuery();
                                 while (rsText.next()) {
                                     String description = rsText.getString(1);
-                                    for (String s: description.split(". ")) {
-                                        inputList.add(s+" .");
-                                    }
+                                    //for (String s: description.split(". ")) {
+                                    inputList.add(description);
+                                    //}
                                 }
                                 outputList= NounPhraseParser.parseNouns(inputList);
-                                String fileName = FileWriter.createFile("reportNounPhrases");
-                                outputList.add(0,String.valueOf(result)+" Popular Noun phrases");
-                                FileWriter.writeToFile(outputList,fileName);
+
+                                outputList.add(0,String.valueOf(result)+"(ID)- Popular Noun phrases");
+                                for(String s : outputList){
+                                    fin.add(s);
+                                }
+
                             }
+                            String fileName = FileWriter.createFile("reportNounPhrases");
+                            FileWriter.writeToFile(fin,fileName);
 
 
                             rsText.close();
