@@ -110,7 +110,7 @@ import java.util.Map;
 
                             closeConnection();
                         }catch(Exception e) {
-                            System.out.print("sfsdffsdfdsf");
+
                             throw e;
                         } finally{
                             // we run this block in every method to ensure there are no memory leaks in the event
@@ -214,7 +214,7 @@ import java.util.Map;
 
                                 } else {
                                     // create a host
-                                    stmt = conn.prepareStatement("INSERT INTO  host (pCode, country, city)  VALUES (?,?,?);",
+                                    stmt = conn.prepareStatement("INSERT INTO  host (user_id, isActive)  VALUES (?,?);",
                                             PreparedStatement.RETURN_GENERATED_KEYS);
                                     stmt.setInt(1, userId);
                                     stmt.setBoolean(2, true);
@@ -256,12 +256,14 @@ import java.util.Map;
 
                     public static String deleteUser(String userID) throws Exception{
                         boolean cleanDelete = true;
-                        PreparedStatement deleteUser = null;
+                        //PreparedStatement deleteUser = null;
                         PreparedStatement updateRenter = null;
                         PreparedStatement updateHost = null;
                         PreparedStatement updateListings = null;
                         PreparedStatement updateRental = null;
                         PreparedStatement updateCalendar = null;
+                        PreparedStatement updateRenterRental = null;
+                        PreparedStatement updateRenterCalendar = null;
 
                         try {
                             createConnection();
@@ -269,7 +271,7 @@ import java.util.Map;
                             // we delete their host and rental acconts
                             //we cancel thier rentals and mark their listings as inactive
                             //we also upate
-                            deleteUser = conn.prepareStatement("DELETE FROM user where user_id =? ;");
+                            //deleteUser = conn.prepareStatement("DELETE FROM user where user_id =? ;");
                             updateRenter = conn.prepareStatement("UPDATE  renter SET  isActive=?  where user_id =? ;");
                             updateHost = conn.prepareStatement("UPDATE  host SET  isActive=?  where user_id =? ;");
                             updateListings = conn.prepareStatement("UPDATE listing INNER JOIN host ON listing.user_id=host.user_id SET listing.isActive =? where listing.isActive =? AND host.user_id =?;");
@@ -278,7 +280,11 @@ import java.util.Map;
                             updateRental = conn.prepareStatement("UPDATE rental INNER JOIN listing ON rental.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET cancelled_By =?,cancelled_On = CURDATE() WHERE host.user_id=? AND listing.isActive =? AND rental.end_date >= CURDATE();");
                             //set all calendar entries for all listngs to unvailable from the host
                             updateCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id INNER JOIN host ON listing.user_id=host.user_id SET isAvailable = ? WHERE host.user_id=? AND calendar_entry.date >= CURDATE();");
-                            deleteUser.setInt(1, Integer.parseInt(userID));
+                           //cancelss all rentals as renter
+                            updateRenterRental = conn.prepareStatement("UPDATE rental SET cancelled_By =?,cancelled_On = CURDATE() WHERE rental.user_id=? AND cancelled_By=? AND rental.end_date >= CURDATE();");
+                            //set all calendar entries for all listngs to unvailable from the user
+                            updateRenterCalendar = conn.prepareStatement("UPDATE calendar_entry  INNER JOIN listing ON calendar_entry.listing_id = listing.listing_id INNER JOIN rental ON rental.listing_id=listing.listing_id SET isAvailable = ? WHERE rental.user_id=? AND listing.isActive=? AND calendar_entry.date >= CURDATE();");
+
                             updateRenter.setBoolean(1,false);
                             updateRenter.setInt(2, Integer.parseInt(userID));
                             updateHost.setBoolean(1,false);
@@ -287,34 +293,37 @@ import java.util.Map;
                             updateListings.setBoolean(2,true);
                             updateListings.setInt(3,Integer.parseInt(userID));
                             //look for errors
-                            if(updateListings.executeUpdate() <= 0)
-                                cleanDelete = false;
+                            updateListings.executeUpdate();
+
                             //cancelled by host
                             //value of 1
                             updateRental.setInt(1,1);
                             //updateRental.setBoolean(2,false);
                             updateRental.setInt(2,Integer.parseInt(userID));
                             updateRental.setBoolean(3,true);
-                            if(updateRental.executeUpdate() <= 0)
-                                cleanDelete = false;
+                            updateRental.executeUpdate();
                             updateCalendar.setBoolean(1,false);
                             updateCalendar.setInt(2,Integer.parseInt(userID));
-                            updateCalendar.setBoolean(3,true);
-                            if(updateCalendar.executeUpdate() <= 0)
-                                cleanDelete = false;
 
-                            if(cleanDelete){
-                                //NEED to determine account being deleted
-                                if(updateRenter.executeUpdate() <= 0)
-                                    cleanDelete = false;
-                                if(updateHost.executeUpdate() <= 0)
-                                    cleanDelete = false;
-                                if (cleanDelete) {
-                                    int a = deleteUser.executeUpdate();
+                            updateCalendar.executeUpdate();
 
-                                }
-                            }
-                            deleteUser.close();
+
+                            updateRenterRental.setInt(1,2);
+                            updateRenterRental.setInt(2,Integer.parseInt(userID));
+                            updateRenterRental.setBoolean(3,true);
+                            updateRenterRental.executeUpdate();
+
+                            updateRenterCalendar.setBoolean(1,false);
+                            updateRenterCalendar.setInt(2,Integer.parseInt(userID));
+                            updateRenterCalendar.setBoolean(3,true);
+                            updateRenterCalendar.executeUpdate();
+
+
+                            updateRenter.executeUpdate();
+
+                            updateHost.executeUpdate();
+
+
                             updateHost.close();
                             updateRenter.close();
                             updateListings.close();
@@ -325,7 +334,7 @@ import java.util.Map;
                             throw e;
                         }finally{
                             try{
-                                deleteUser.close();
+                                //deleteUser.close();
                                 updateHost.close();
                                 updateRenter.close();
                                 updateListings.close();
@@ -461,7 +470,7 @@ import java.util.Map;
                             if (addrId != -1 && locId != -1 ){
                                 // if we sucess fully created the two entires prepare and execute the query
                                 //to insert the listing
-                                System.out.print(sql);
+
                                 createListing = conn.prepareStatement(sql,PreparedStatement.RETURN_GENERATED_KEYS);
                                 createListing.setInt(1,Integer.parseInt(userID));
                                 createListing.setInt(3,addrId);
@@ -615,14 +624,13 @@ import java.util.Map;
                             rs = listings.executeQuery();
                             while (rs.next()) {
 
-                                System.out.println(String.format("%d:%s:%s:%s:%s",rs.getInt("listing_id"),
-                                        rs.getString("type"),rs.getString("country"),rs.getString("city"),rs.getString("pCode")));
+
                                 list.add(String.format("%d:%s:%s:%s:%s", rs.getInt("listing_id"),
                                         rs.getString("type"), rs.getString("country"), rs.getString("city"), rs.getString("pCode")));
                             }
 
                             rs.close();
-                            System.out.println("DONE");
+
                             listings.close();
                             closeConnection();
 
@@ -656,8 +664,8 @@ import java.util.Map;
                                 DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
                                 String start = df.format(rs.getDate("start_date"));
                                 String end = df.format(rs.getDate("start_date"));
-                                list.add(String.format("%d:%s:%s:%s:%s:%s:%s", rs.getInt("rental_id")
-                                        , rs.getInt("listing_id"), rs.getString("country"), rs.getString("city"), rs.getString("pCode"),start,end));
+                                list.add(String.format("%d:%s:%s:%s:%s:%s:%s", rs.getInt("listing_id"),rs.getInt("rental_id")
+                                        , rs.getString("country"), rs.getString("city"), rs.getString("pCode"),start,end));
                             }
 
                             rs.close();
@@ -707,7 +715,7 @@ import java.util.Map;
                                 map.put("numberOfBedrooms",rs.getInt("num_bedrooms"));
                                 map.put("type",rs.getString("type"));
                                 //get a list of available ammenties in this listing
-                                for (int i=9;i <=39 ;i++){
+                                for (int i=9;i <39 ;i++){
                                     if (rs.getBoolean(i))
                                         list.add(rs.getMetaData().getColumnName(i));
 
@@ -945,7 +953,8 @@ import java.util.Map;
                             //fill
                             updRental.setInt(1,cancelled);
                             updRental.setInt(2, Integer.parseInt(bookingID));
-                            updateCalendar.setInt(1,Integer.parseInt(bookingID));
+                            updateCalendar.setInt(2,Integer.parseInt(bookingID));
+                            updateCalendar.setBoolean(1,true);
                             int complete = updRental.executeUpdate();
                             int completeCal = updateCalendar.executeUpdate();
                             // verify success
@@ -995,8 +1004,8 @@ import java.util.Map;
                                 DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
                                 String start = df.format(rs.getDate("start_date"));
                                 String end = df.format(rs.getDate("start_date"));
-                                list.add(String.format("%d:%s:%s:%s:%s:%s:%s ", rs.getInt("rental_id")
-                                        , rs.getInt("listing_id"), rs.getString("country"), rs.getString("city"), start, end));
+                                list.add(String.format("%d:%d:%s:%s:%s:%s ", rs.getInt("listing_id")
+                                        ,rs.getInt("rental_id"), rs.getString("country"), rs.getString("city"), start, end));
 
                             }
                             rs.close();
@@ -1191,7 +1200,7 @@ import java.util.Map;
                                 updateCalendar.setBigDecimal(1,calendarEntryRange.getPrice());
                                 //update
                                 int a =updateCalendar.executeUpdate();
-                                    System.out.print("OHHHHH");
+
                                     //insert
                                     insertCalendar = conn.prepareStatement(insCal);
                                     insertCalendar.setInt(1,Integer.parseInt(listingID));
@@ -1277,7 +1286,7 @@ import java.util.Map;
                                 listingPrice.setInt(1,Integer.parseInt(listingID));
                                 rsPrice = listingPrice.executeQuery();
                                 if (rsPrice.next()){
-                                    System.out.print("INSEaaRT");
+
                                     BigDecimal price = rsPrice.getBigDecimal(1);
                                     updateCalendar = conn.prepareStatement(updCal);
                                     updateCalendar.setDate(2,calendarEntryRange.getStartDate());
@@ -1285,7 +1294,7 @@ import java.util.Map;
                                     updateCalendar.setInt(4,Integer.parseInt(listingID));
                                     updateCalendar.setBoolean(1,calendarEntryRange.isAvailable());
                                     int a =updateCalendar.executeUpdate();
-                                        System.out.print("INSERT");
+
                                         insertCalendar = conn.prepareStatement(insCal);
                                         insertCalendar.setInt(1,Integer.parseInt(listingID));
                                         insertCalendar.setBoolean(2,calendarEntryRange.isAvailable());
@@ -1296,13 +1305,13 @@ import java.util.Map;
                                         insertCalendar.setDate(7,calendarEntryRange.getEndDate());
                                         insertCalendar.setInt(8,Integer.parseInt(listingID));
                                         if(insertCalendar.executeUpdate()> 0){
-                                            System.out.print("INSERTVALID");
+
 
                                             retval = "success";
                                         }
                                         insertCalendar.close();
 
-                                    System.out.print("THORUGH STAGE");
+
                                     updateCalendar.close();
 
 
@@ -1435,11 +1444,11 @@ import java.util.Map;
                                     boolean passCheck = true;
                                     //filter by availability
                                     if (filter.getFirstDate() != null) {
-                                        calendarCheck = conn.prepareStatement("select calendar_entry_id from calendar_entry where listing_id =? and is_available = ? and date>=? and date<=?; ");
+                                        calendarCheck = conn.prepareStatement("select calendar_entry.listing_id from calendar_entry where listing_id =? and isAvailable = ? and date>=? and date<=?; ");
                                         calendarCheck.setInt(1, listingID);
                                         calendarCheck.setBoolean(2, false);
                                         calendarCheck.setDate(3, filter.getFirstDate());
-                                        calendarCheck.setDate(3, filter.getLastDate());
+                                        calendarCheck.setDate(4, filter.getLastDate());
                                         rsCal = calendarCheck.executeQuery();
                                         if (rsCal.next())
                                             passCheck = false;
@@ -1711,8 +1720,8 @@ import java.util.Map;
                                 }else if (type ==2){
                                     data = String.format("%s:%s:%d", rs.getString(1) ,rs.getString(2),rs.getInt(3));
                                     list.add(data);
-                                }else {
-                                    data = String.format("%s:%s:%d", rs.getString(1) ,rs.getString(2),rs.getString(3),rs.getInt(4));
+                                }else if(type==3){
+                                    data = String.format("%s:%s:%s:%d", rs.getString(1) ,rs.getString(2),rs.getString(3),rs.getInt(4));
                                     list.add(data);
 
                                 }
@@ -1770,10 +1779,10 @@ import java.util.Map;
                             String header = "";
                             //Retrieve Column names for report
                             if (city){
-                                header = String.format("%s:%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2) ,rs.getMetaData().getColumnName(3));
+                                header = String.format("%s:%s:%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2) ,rs.getMetaData().getColumnName(3),rs.getMetaData().getColumnName(4));
 
                             }else {
-                                header = String.format("%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2));
+                                header = String.format("%s:%s:%s", rs.getMetaData().getColumnName(1) ,rs.getMetaData().getColumnName(2),rs.getMetaData().getColumnName(3));
                             }
                             list.add(header);
                             String data = "";
@@ -1781,10 +1790,10 @@ import java.util.Map;
                                 //select method of storing data
                                 //dependant on query used
                                 if (city){
-                                    data = String.format("%s:%s:%d", rs.getString(1) ,rs.getString(2) ,rs.getInt(3));
+                                    data = String.format("%s:%s:%d:%d", rs.getString(1) ,rs.getString(2) ,rs.getInt(3),rs.getInt(4));
                                     list.add(data);
                                 }else {
-                                    data = String.format("%s:%d", rs.getString(1) ,rs.getInt(2));
+                                    data = String.format("%s:%d:%d", rs.getString(1) ,rs.getInt(2),rs.getInt(3));
                                     list.add(data);
                                 }
 
@@ -1875,14 +1884,15 @@ import java.util.Map;
                         ResultSet rs = null;
                         ArrayList<String> list = new ArrayList<String>();
                         String filename ="rentalsInPeriod";
-                        String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.cancelledBy=0 and rental.start_date >=? and start_date<=?  group by user_id)t group by" +
+                        String sql = "select * from (select user_id, count(*) as numRental from rental WHERE rental.cancelled_By=0 and rental.start_date >=? and start_date<=?  group by user_id)t group by" +
                                 " t.numRental DESC,t.user_id ;";
-                        if (city)
-                            filename ="rentalsInPeriodPerCity";
-                            sql = "select * from (select address.country,rental.user_id, count(*) as numRental from rental INNER JOIN" +
+                        if (city) {
+                            filename = "rentalsInPeriodPerCity";
+                            sql = "select * from (select address.city,rental.user_id, count(*) as numRental from rental INNER JOIN" +
                                     " listing ON rental.listing_id=listing.listing_id INNER JOIN address on address.address_id =" +
-                                    " listing.address_id WHERE rental.cancelledBy = 0 and rental.start_date >=? and start_date<=?  group by rental.user_id,address.country)t where t.numRental > 1 group by" +
-                                    " t.country ASC, t.numRental DESC,t.user_id;";
+                                    " listing.address_id WHERE rental.cancelled_By = 0 and rental.start_date >=? and start_date<=?  group by rental.user_id,address.city)t where t.numRental > 1 group by" +
+                                    " t.city ASC, t.numRental DESC,t.user_id;";
+                        }
                         filename = FileWriter.createFile(filename);
                         int result = -1;
                         try {
@@ -1943,12 +1953,13 @@ import java.util.Map;
                                 "WHERE cancelled_By=2 AND  cancelled_On>= DATE_SUB(CURDATE(), " +
                                 "INTERVAL 1 YEAR) AND cancelled_On <= CURDATE() GROUP BY " +
                                 "user_id)t group by t.numRental DESC,t.user_id;";
-                        if (host)
-                            filename ="rentalsCancelledByHosts";
+                        if (host) {
+                            filename = "rentalsCancelledByHosts";
                             sql = "select * from (select listing.user_id, count(*) as numRental from rental" +
                                     " INNER JOIN listing ON rental.listing_id =listing.listing_id WHERE cancelled_By=1 AND" +
                                     "  cancelled_On>= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND cancelled_On <= CURDATE()" +
                                     " group by user_id)t  group by t.numRental DESC,user_id;";
+                        }
                         filename = FileWriter.createFile(filename);
                         int result = -1;
                         try {
@@ -2062,12 +2073,13 @@ import java.util.Map;
                         try{
                             createConnection();
                             listings = conn.prepareStatement("Select * from listing where type =?;");
+                            listings.setString(1,type);
                             rs = listings.executeQuery();
 
                             while(rs.next()){
                                 int count = 0;
                                 // we know the order of columns hence we can loop over fixed columns
-                                for (int i=9;i <=39 ;i++) {
+                                for (int i=9;i <39 ;i++) {
                                     if (rs.getBoolean(i))
                                         count++;
                                 }
