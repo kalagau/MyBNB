@@ -213,7 +213,7 @@ CHECK(num_bedrooms > 0 AND num_bedrooms < 25 ),
 CHECK(price>0)) ENGINE INNODB;
 
 delimiter |
-CREATE TRIGGER listingIns BEFORE INSERT ON listaing
+CREATE TRIGGER listingIns BEFORE INSERT ON listing
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
 IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms > 25 OR  NEW.price < 0 THEN
@@ -226,7 +226,7 @@ delimiter ;
 
 
 	delimiter |
-	CREATE TRIGGER listingUpd BEFORE UPDATE ON listaing
+	CREATE TRIGGER listingUpd BEFORE UPDATE ON listing
 	FOR EACH ROW BEGIN
 	DECLARE msg varchar(255);
 	IF NEW.type NOT IN ('full house','room','apartment') OR NEW.num_bedrooms <= 0  OR NEW.num_bedrooms >= 25 OR  NEW.price < 0 THEN	
@@ -295,7 +295,7 @@ delimiter |
 CREATE TRIGGER rentalIns BEFORE INSERT ON rental
 FOR EACH ROW BEGIN	
 DECLARE msg varchar(255);
-IF NEW.start_date  > NEW.end_date OR cancelled_By< 0 OR  cancelled_By > 2 THEN
+IF NEW.start_date  > NEW.end_date OR NEW.cancelled_By < 0 OR  NEW.cancelled_By > 2 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45000' set message_text = msg;
 END IF;
@@ -308,7 +308,7 @@ delimiter |
 CREATE TRIGGER rentalUpd BEFORE UPDATE ON rental
 FOR EACH ROW BEGIN
 DECLARE msg varchar(255);
-IF NEW.start_date  > NEW.end_date OR cancelled_By< 0 OR  cancelled_By > 2 THEN
+IF NEW.start_date  > NEW.end_date OR NEW.cancelled_By < 0 OR  NEW.cancelled_By > 2 THEN
 SET msg = 'Constraints violated!';
 SIGNAL sqlstate '45001' set message_text = msg;
 END IF;
