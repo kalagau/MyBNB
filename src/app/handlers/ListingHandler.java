@@ -127,9 +127,11 @@ public class ListingHandler extends BaseHandler {
 
         ListingFilter listingsFilter = new ListingFilter(asker.askQuestions());
 
-        System.out.println("Enter applicable amenities below, separated by commas");
-        decider.setOptions(DBTalker.getListingCharacteristics());
-        listingsFilter.setCharacteristics(decider.displayOptionsWithMultipleInput());
+        if(filters.contains("Amenities")) {
+            System.out.println("Enter applicable amenities below, separated by commas");
+            decider.setOptions(DBTalker.getListingCharacteristics());
+            listingsFilter.setCharacteristics(decider.displayOptionsWithMultipleInput());
+        }
 
         if(filters.contains("Type of Place")){
             decider.add("full house");
@@ -138,12 +140,16 @@ public class ListingHandler extends BaseHandler {
             listingsFilter.setType(decider.displayOptions());
         }
 
-        System.out.println("Sort by:");
-        decider.add("Price");
-        decider.add("Distance");
-        listingsFilter.setSortByPrice(decider.displayOptions().equals("Price"));
-
-        if(filters.contains("Distance from Location")){
+        if(filters.contains("Distance from Location")) {
+            System.out.println("Sort by:");
+            decider.add("Price");
+            decider.add("Distance");
+            listingsFilter.setSortByPrice(decider.displayOptions().equals("Price"));
+            decider.add("Ascending");
+            decider.add("Descending");
+            listingsFilter.setSortAscending(decider.displayOptions().equals("Ascending"));
+        } else {
+            System.out.println("Order by price:");
             decider.add("Ascending");
             decider.add("Descending");
             listingsFilter.setSortAscending(decider.displayOptions().equals("Ascending"));
@@ -161,6 +167,7 @@ public class ListingHandler extends BaseHandler {
         decider.add("Available Date Range");
         decider.add("Minimum Number of Bedrooms");
         decider.add("Type of Place");
+        decider.add("Amenities");
         return decider.displayOptionsWithMultipleInput();
     }
 

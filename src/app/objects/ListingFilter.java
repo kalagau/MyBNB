@@ -14,7 +14,8 @@ public class ListingFilter {
     private BigDecimal longitude, latitude, lowestPrice, highestPrice, maxDistance;
     private Date firstDate, lastDate;
     private int minNumberOfBedrooms = -1;
-    private boolean sortByPrice, sortAscending;
+    private boolean sortByPrice = true;
+    private boolean sortAscending = true;
 
     private ArrayList<String> characteristics;
 
@@ -23,11 +24,11 @@ public class ListingFilter {
         this.postalCode = (String) listing.getOrDefault("postalCode", "");
         this.country = (String) listing.getOrDefault("country", "");
         this.type = (String) listing.getOrDefault("type", "");
-        this.longitude = BigDecimal.valueOf((double) listing.getOrDefault("longitude", -1));
-        this.latitude = BigDecimal.valueOf((double) listing.getOrDefault("latitude", -1));
-        this.lowestPrice = BigDecimal.valueOf((double) listing.getOrDefault("lowestPrice", -1));
-        this.highestPrice = BigDecimal.valueOf((double) listing.getOrDefault("highestPrice", -1));
-        this.maxDistance = BigDecimal.valueOf((double) listing.getOrDefault("maxDistance", -1));
+        this.longitude = BigDecimal.valueOf((double) listing.getOrDefault("longitude", -1.));
+        this.latitude = BigDecimal.valueOf((double) listing.getOrDefault("latitude", -1.));
+        this.lowestPrice = BigDecimal.valueOf((double) listing.getOrDefault("lowestPrice", -1.));
+        this.highestPrice = BigDecimal.valueOf((double) listing.getOrDefault("highestPrice", -1.));
+        this.maxDistance = BigDecimal.valueOf((double) listing.getOrDefault("maxDistance", -1.));
         this.firstDate = (Date) listing.getOrDefault("firstDate", null);
         this.lastDate = (Date) listing.getOrDefault("lastDate", null);
         this.minNumberOfBedrooms = (int) listing.getOrDefault("minNumberOfBedrooms", -1);
