@@ -12,7 +12,9 @@ import java.util.function.Function;
 public class Validators {
 
     public static Map<ValidatorKeys, Function> Validation;
-    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE, FUTURE_START_DATE, FUTURE_END_DATE, START_DATE, END_DATE, CC_EXPIRY}
+    public enum ValidatorKeys { NONE, IS_ADULT, ALL_NUMBERS, POSTAL_CODE, FUTURE_START_DATE,
+        FUTURE_END_DATE, START_DATE, END_DATE, CC_EXPIRY, CC_NUMBER, CCV, LONGITUDE, LATITUDE,
+    SIN, NOT_NEGATIVE, NUM_BEDROOMS}
     private static Calendar startDate;
 
     public static void initMap(){
@@ -25,7 +27,13 @@ public class Validators {
         Validation.put(ValidatorKeys.FUTURE_END_DATE, (d)-> Validators.isFutureEndDate((Date)d));
         Validation.put(ValidatorKeys.START_DATE, (d)-> Validators.isStartDate((Date)d));
         Validation.put(ValidatorKeys.END_DATE, (d)-> Validators.isEndDate((Date)d));
-        Validation.put(ValidatorKeys.CC_EXPIRY, (s)-> Validators.isCCExpiry((String) s));
+        Validation.put(ValidatorKeys.CC_NUMBER, (s)-> Validators.CCNumber((String) s));
+        Validation.put(ValidatorKeys.CCV, (s)-> Validators.CCV((String) s));
+        Validation.put(ValidatorKeys.LONGITUDE, (d)-> Validators.longitude((Double) d));
+        Validation.put(ValidatorKeys.LATITUDE, (d)-> Validators.latitude((Double) d));
+        Validation.put(ValidatorKeys.SIN, (s)-> Validators.SIN((String) s));
+        Validation.put(ValidatorKeys.NOT_NEGATIVE, (d)-> Validators.notNegative((Double) d));
+        Validation.put(ValidatorKeys.NUM_BEDROOMS, (i)-> Validators.numBedrooms((int) i));
     }
 
     public static boolean noValidation(Object o){
@@ -79,6 +87,39 @@ public class Validators {
     public static boolean isCCExpiry(String str){
         return str.matches("((0?[1-9])|(1[0-2]))/\\d{4}"); // mm/yyyy
     }
+
+    public static boolean CCNumber(String str){
+        return allNumbers(str) && str.length() >= 13 && str.length() <= 19;
+    }
+
+    public static boolean CCV(String str){
+        return allNumbers(str) && str.length() <= 4 && (str.length() > 1 || !str.equals("0"));
+    }
+
+    public static boolean longitude(Double d){
+        return d > -180. && d < 180.;
+    }
+
+    public static boolean latitude(Double d){
+        return d > -90. && d < 90.;
+    }
+
+    public static boolean SIN(String str){
+        return allNumbers(str) && str.charAt(0) != '0' && str.length() <= 9;
+    }
+
+    public static boolean notNegative(Double d){
+        return d >= 0;
+    }
+
+    public static boolean numBedrooms(int d){
+        return d > 0 && d <25.;
+    }
+
+
+
+
+
 
 
 }

@@ -8,6 +8,7 @@ import app.objects.User;
 import app.DBTalker;
 import app.Terminal;
 import app.Validators;
+import app.Validators.ValidatorKeys;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -47,18 +48,18 @@ public class UserHandler extends BaseHandler {
     public void register() {
         asker.add(new Info("name", "Name:", Info.DataType.STRING));
         asker.add(new Info("occupation", "Occupation:", Info.DataType.STRING));
-        asker.add(new Info("DOB", "Date of Birth (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.IS_ADULT));
-        asker.add(new Info("SIN", "Social Insurance Number:", Info.DataType.STRING, Validators.ValidatorKeys.ALL_NUMBERS));
+        asker.add(new Info("DOB", "Date of Birth (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.IS_ADULT));
+        asker.add(new Info("SIN", "Social Insurance Number:", Info.DataType.STRING, ValidatorKeys.SIN));
         asker.add(new Info("country", "Country:", Info.DataType.STRING));
         asker.add(new Info("city", "City:", Info.DataType.STRING));
-        asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, Validators.ValidatorKeys.POSTAL_CODE));
+        asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, ValidatorKeys.POSTAL_CODE));
         asker.add(new Info("isRenter", "Will you be a renter? (y/n):", Info.DataType.BOOLEAN));
         User user = new User(asker.askQuestions());
 
         if (user.isRenter()) {
-            asker.add(new Info("number", "Credit Card Number:", Info.DataType.STRING, Validators.ValidatorKeys.ALL_NUMBERS));
-            asker.add(new Info("expiryDate", "Credit Card Expiry Date: (mm/yyyy)", Info.DataType.STRING, Validators.ValidatorKeys.CC_EXPIRY));
-            asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING));
+            asker.add(new Info("number", "Credit Card Number:", Info.DataType.STRING, ValidatorKeys.CC_NUMBER));
+            asker.add(new Info("expiryDate", "Credit Card Expiry Date: (mm/yyyy)", Info.DataType.STRING, ValidatorKeys.CC_EXPIRY));
+            asker.add(new Info("CCV", "Credit Card CCV:", Info.DataType.STRING, ValidatorKeys.CCV));
             asker.add(new Info("holderName", "Credit Card Holder Name:", Info.DataType.STRING));
             user.setCreditCard(new CreditCard(asker.askQuestions()));
         }

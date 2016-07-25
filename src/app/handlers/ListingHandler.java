@@ -6,6 +6,8 @@ import app.modules.Asker;
 import app.modules.Decider;
 import app.objects.*;
 import app.Terminal;
+import app.Validators.ValidatorKeys;
+
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -25,11 +27,11 @@ public class ListingHandler extends BaseHandler {
     public void createListing(){
         asker.add(new Info("country", "Country:", Info.DataType.STRING));
         asker.add(new Info("city", "City:", Info.DataType.STRING));
-        asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, Validators.ValidatorKeys.POSTAL_CODE));
-        asker.add(new Info("longitude", "Longitude:", Info.DataType.DOUBLE));
-        asker.add(new Info("latitude", "Latitude:", Info.DataType.DOUBLE));
-        asker.add(new Info("numberOfBedrooms", "Number of Bedrooms:", Info.DataType.INTEGER));
-        asker.add(new Info("mainPrice", "Price:", Info.DataType.DOUBLE));
+        asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, ValidatorKeys.POSTAL_CODE));
+        asker.add(new Info("longitude", "Longitude:", Info.DataType.DOUBLE, ValidatorKeys.LONGITUDE));
+        asker.add(new Info("latitude", "Latitude:", Info.DataType.DOUBLE, ValidatorKeys.LATITUDE));
+        asker.add(new Info("numberOfBedrooms", "Number of Bedrooms:", Info.DataType.INTEGER, ValidatorKeys.NUM_BEDROOMS));
+        asker.add(new Info("mainPrice", "Price:", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
         Listing listing = new Listing(asker.askQuestions());
 
         decider.add("full house");
@@ -78,8 +80,8 @@ public class ListingHandler extends BaseHandler {
     }
 
     private void askStartAndEndDate(){
-        asker.add(new Info("startDate", "Starting Date (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.FUTURE_START_DATE));
-        asker.add(new Info("endDate", "Ending Date (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.FUTURE_END_DATE));
+        asker.add(new Info("startDate", "Starting Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_START_DATE));
+        asker.add(new Info("endDate", "Ending Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_END_DATE));
     }
 
     public void showMyListingInfo(){
@@ -116,26 +118,27 @@ public class ListingHandler extends BaseHandler {
     public ArrayList<String> getFilteredListings(){
         ArrayList<String> filters = getFilters();
         if(filters.contains("Distance from Location")){
-            asker.add(new Info("longitude", "Longitude:", Info.DataType.DOUBLE));
-            asker.add(new Info("latitude", "Latitude:", Info.DataType.DOUBLE));
-            asker.add(new Info("maxDistance", "Max Distance (km):", Info.DataType.DOUBLE));
+            asker.add(new Info("longitude", "Longitude:", Info.DataType.DOUBLE, ValidatorKeys.LONGITUDE));
+            asker.add(new Info("latitude", "Latitude:", Info.DataType.DOUBLE, ValidatorKeys.LATITUDE));
+            asker.add(new Info("maxDistance", "Max Distance (km):", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
         }
         if(filters.contains("Postal Code")){
-            asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, Validators.ValidatorKeys.POSTAL_CODE));
+            asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, ValidatorKeys.POSTAL_CODE));
         }
         if(filters.contains("Price Range")){
-            asker.add(new Info("mainPrice", "Price:", Info.DataType.DOUBLE));
+            asker.add(new Info("lowestPrice", "Min Price:", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
+            asker.add(new Info("highestPrice", "Max Price:", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
         }
         if(filters.contains("Address")){
             asker.add(new Info("country", "Country:", Info.DataType.STRING));
             asker.add(new Info("city", "City:", Info.DataType.STRING));
         }
         if(filters.contains("Available Date Range")){
-            asker.add(new Info("firstDate", "First Date (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.FUTURE_START_DATE));
-            asker.add(new Info("lastDate", "Last Date (yyyy-mm-dd):", Info.DataType.DATE, Validators.ValidatorKeys.FUTURE_END_DATE));
+            asker.add(new Info("firstDate", "First Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_START_DATE));
+            asker.add(new Info("lastDate", "Last Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_END_DATE));
         }
         if(filters.contains("Minimum Number of Bedrooms")){
-            asker.add(new Info("minNumberOfBedrooms", "Minimum number of bedrooms:", Info.DataType.INTEGER));
+            asker.add(new Info("minNumberOfBedrooms", "Minimum number of bedrooms:", Info.DataType.INTEGER, ValidatorKeys.NUM_BEDROOMS));
         }
 
         ListingFilter listingsFilter = new ListingFilter(asker.askQuestions());
