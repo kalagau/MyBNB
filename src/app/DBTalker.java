@@ -2,6 +2,7 @@ package app;
 
 import app.objects.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -59,6 +60,7 @@ public class DBTalker {
             errorOccurred(e);
             return null;
         }
+
     }
 
     public static String createNewUser(User user) {
