@@ -51,12 +51,12 @@ public class ReportsHandler extends BaseHandler {
         options.add("Country");
         options.add("Country and City");
         options.add("Country, City, and Postal Code");
-        decider.setOptions(options);
-        int type = options.indexOf(decider.displayOptions());
+        options.forEach(s->decider.add(s));
+        int type = options.indexOf(decider.displayOptions()) + 1;
 
         DBReportsTalker.numberOfListings(type);
     }
-
+    
     public void hostsByNumberOfListings() {
         decider.add("Country");
         decider.add("City");
