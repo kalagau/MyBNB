@@ -755,9 +755,10 @@ import java.util.Map;
                             listings.setInt(2,0);
 
                             rs = listings.executeQuery();
+                            //need to check return format
                             while (rs.next())
-                                list.add(String.format("%d:Rental:%d:Listing:%d:Host",rs.getInt("rental_id")
-                                        ,rs.getInt("listing.listing_id"),rs.getInt("listing.user_id")));
+                                list.add(String.format("%d:%d:%d:",rs.getInt("rental_id")
+                                        ,rs.getInt("listing.user_id"),rs.getInt("listing.listing_id")));
 
 
                             rs.close();
@@ -795,8 +796,8 @@ import java.util.Map;
 
                             rs = listings.executeQuery();
                             while (rs.next())
-                                list.add(String.format("%d:Rental:%d:Listing:%d:Renter",rs.getInt("rental_id")
-                                        ,rs.getInt("listing.listing_id"),rs.getInt("rental.user_id")));
+                                list.add(String.format("%d:%d:%d:",rs.getInt("rental_id")
+                                        ,rs.getInt("rental.user_id"),rs.getInt("listing.listing_id")));
 
 
                             rs.close();
@@ -823,7 +824,7 @@ import java.util.Map;
                         ResultSet rs = null;
                         try {
                             createConnection();
-                            listings = conn.prepareStatement("SELECT rental_id,listing.listing_id FROM rental " +
+                            listings = conn.prepareStatement("SELECT rental.user_id,rental_id,listing.listing_id FROM rental " +
                                     "INNER JOIN listing ON listing.listing_id=rental.listing_id INNER JOIN address ON" +
                                     " listing.address_id=address.address_id WHERE rental.user_id=? and rental.cancelled_By=? "+
                                     " AND rental.end_date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) and rental.end_date<= CURDATE();");
@@ -832,7 +833,7 @@ import java.util.Map;
                             listings.setInt(2,0);
                             rs = listings.executeQuery();
                             while (rs.next())
-                                list.add(String.format("%d:Rental:%d:Listing:%d:Renter",rs.getInt("rental_id")
+                                list.add(String.format("%d:%d:%d:",rs.getInt("rental_id")
                                         ,rs.getInt("listing.listing_id"),rs.getInt("rental.user_id")));
 
 
@@ -867,6 +868,8 @@ import java.util.Map;
                             createConnection();
                             String colName ="";
                             int type = 0;
+                            int reviewee =Integer.parseInt(review.getRevieweeID());
+                            int reviewer = Integer.parseInt(userID);
                             if (review.getType().equals(Review.RevieweeType.HOST)) {
                                 colName ="host_id";
                                 type = 1;
@@ -877,13 +880,15 @@ import java.util.Map;
 
                             }else{
                                 colName ="host_id";
+                                reviewer =Integer.parseInt(review.getRevieweeID());
+                                reviewee = Integer.parseInt(userID);
                                 type = 3;
                             }
                             //update insert statement based on review type.
-                            sql.replace("#",colName);
+                            sql = sql.replace("#",colName);
                             insReview =conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-                            insReview.setInt(1,Integer.parseInt(review.getRevieweeID()));
-                            insReview.setInt(2, Integer.parseInt(userID));
+                            insReview.setInt(1,reviewee);
+                            insReview.setInt(2, reviewer);
                             insReview.setInt(3,review.getRating());
                             insReview.setString(4,review.getDescription());
                             insReview.setInt(5,type);
@@ -1028,12 +1033,12 @@ import java.util.Map;
                         //get listings normal price
                         String priceSQL= "select listing.price from listing WHERE listing_id=?";
                         //mark all spots for the pecified listing an date range as booked
-                        String updCal= "UPDATE calendar_entry SET  calendar_entry.isAvailable =? where calendar_entry.date >= ? AND calendar_entry.date<=? AND and listing_id=?;";
+                        String updCal= "UPDATE calendar_entry SET  calendar_entry.isAvailable =? where calendar_entry.date >= ? AND calendar_entry.date<=? AND  listing_id=?;";
                         //Inset entrys into calendar for days not in the calendar
                         //with default price and booked
-                        String insCal= "INSERT into calendar_entry (listing_id isAvailable,price,date) select ?, ?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
+                        String insCal= "INSERT into calendar_entry (listing_id, isAvailable,price,date) select ?, ?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
                         //create rental
-                        String insRental = "INSERT INTO rental(user_id,listing_id,start_date,end_date) VALUES(?,?,?,?);";
+                        String insRental = "INSERT INTO rental(user_id,listing_id,start_date,end_date,price) VALUES(?,?,?,?,?);";
                         //get the rentals total price over the range
                         String totalPrice = "Select SUM(price) from calendar_entry where date>=? and date<=? and listing_id=?";
 
@@ -1062,7 +1067,7 @@ import java.util.Map;
                                     updateCalendar.setDate(3,rental.getEndDate());
                                     updateCalendar.setInt(4,Integer.parseInt(listingID));
                                     updateCalendar.setBoolean(1,false);
-                                    if (updateCalendar.executeUpdate()>0){
+                                    int a = updateCalendar.executeUpdate();
                                         //insert into ca;emdar
                                         insertCalendar = conn.prepareStatement(insCal);
                                         insertCalendar.setInt(1,Integer.parseInt(listingID));
@@ -1073,7 +1078,7 @@ import java.util.Map;
                                         insertCalendar.setDate(6,rental.getStartDate());
                                         insertCalendar.setDate(7,rental.getEndDate());
                                         insertCalendar.setInt(8,Integer.parseInt(listingID));
-                                        if(insertCalendar.executeUpdate()> 0){
+                                        int b = insertCalendar.executeUpdate();
                                             //get total price
                                             getPrice  = conn.prepareStatement(totalPrice);
                                             getPrice.setDate(1,rental.getStartDate());
@@ -1084,30 +1089,40 @@ import java.util.Map;
                                                 // insert missing dates into cal
                                                 BigDecimal tPrice = rsGetPrice.getBigDecimal(1);
                                                 insertRental = conn.prepareStatement(insRental,PreparedStatement.RETURN_GENERATED_KEYS);
+                                                insertRental.setInt(1, Integer.parseInt(userID));
+                                                insertRental.setInt(2,Integer.parseInt(listingID));
+                                                insertRental.setDate(3,rental.getStartDate());
+                                                insertRental.setDate(4,rental.getEndDate());
+                                                insertRental.setBigDecimal(5,tPrice);
                                                 int res = insertRental.executeUpdate();
                                                 rsInsRental = insertRental.getGeneratedKeys();
                                                 if (rsInsRental.next()){
                                                     //get rental id
                                                     retval = String.valueOf(rsInsRental.getInt(1));
                                                 }
+                                                rsInsRental.close();
+                                                insertRental.close();
+
 
                                             }
+                                            rsGetPrice.close();
+                                            getPrice.close();
+                                    insertCalendar.close();
+                                    updateCalendar.close();
 
 
-                                        }
-                                    }
+
+
+
 
                                 }
+                                rsPrice.close();
+                                listingPrice.close();
 
                             }
-                            rsInsRental.close();
-                            insertRental.close();
-                            rsGetPrice.close();
-                            getPrice.close();
-                            insertCalendar.close();
-                            updateCalendar.close();
-                            rsPrice.close();
-                            listingPrice.close();
+
+
+
                             rs.close();
                             conflicts.close();
 
@@ -1385,7 +1400,7 @@ import java.util.Map;
 
                                 }
                                 // filter by price limits
-                                if (!filter.getLowestPrice().toPlainString().equals("-1")) {
+                                if (!filter.getLowestPrice().toPlainString().equals("-1.0")) {
                                     if (!filter.getHighestPrice().toPlainString().equals("-1")) {
                                         sql = "SELECT * FROM (" + sql + ")e where price>=? and price <=?";
                                         exactSearch = conn.prepareStatement(sql + ";");
@@ -1402,7 +1417,7 @@ import java.util.Map;
 
 
 
-                                } else if(!filter.getHighestPrice().toPlainString().equals("-1")){
+                                } else if(!filter.getHighestPrice().toPlainString().equals("-1.0")){
                                     sql = "SELECT * FROM (" + sql + ")e where price<=?";
                                     exactSearch = conn.prepareStatement(sql + ";");
                                     exactSearch.setBigDecimal(2,filter.getHighestPrice());
@@ -1428,12 +1443,14 @@ import java.util.Map;
                                         rsCal = calendarCheck.executeQuery();
                                         if (rsCal.next())
                                             passCheck = false;
+                                        rsCal.close();
+                                        calendarCheck.close();
 
                                     }
                                     //filter by character istics
-                                    if (passCheck && !(filter.getCharacteristics().size() == 0)) {
+                                    if (passCheck && !(filter.getCharacteristics()==null)) {
                                         for (String s : filter.getCharacteristics()) {
-                                            if (!rsCal.getBoolean(s)) {
+                                            if (!rs.getBoolean(s)) {
                                                 passCheck = false;
                                             }
 
@@ -1444,9 +1461,7 @@ import java.util.Map;
                                             rs.getString("City"), rs.getString("pCode"),
                                             rs.getBigDecimal("price").toPlainString());
                                     // if all filers worked
-                                    if (passCheck) {
-                                        list.add(listing);
-                                    }
+
                                     //sort by distacne is enabled
                                     if (passCheck && !filter.isSortByPrice()) {
                                         double latitude = rs.getBigDecimal("latitude").doubleValue();
@@ -1454,11 +1469,29 @@ import java.util.Map;
                                         // get dstance
                                         double calcDistance = distance(latitude, longitude, filter.getLatitude().doubleValue()
                                                 , filter.getLongitude().doubleValue(), 'K');
-                                        listing += String.valueOf(calcDistance) + " km";
+                                        listing += ":" + String.valueOf(calcDistance) + " km";
                                         //store distance array
                                         distance.add(new Pair<Double,String>(calcDistance, listing));
 
 
+                                    }else if (passCheck && filter.getMaxDistance().signum()==1){
+                                        double latitude = rs.getBigDecimal("latitude").doubleValue();
+                                        double longitude = rs.getBigDecimal("longitude").doubleValue();
+                                        // get dstance
+                                        double calcDistance = distance(latitude, longitude, filter.getLatitude().doubleValue()
+                                                , filter.getLongitude().doubleValue(), 'K');
+                                        if (calcDistance> filter.getMaxDistance().doubleValue())
+                                        {
+                                            passCheck = false;
+                                        }else{
+                                            listing += ":" + String.valueOf(calcDistance) + " km";
+                                        }
+
+                                    }
+
+
+                                    if (passCheck) {
+                                        list.add(listing);
                                     }
 
 
@@ -1466,8 +1499,7 @@ import java.util.Map;
 
 
                             }
-                            rsCal.close();
-                            calendarCheck.close();
+
                             rs.close();
                             exactSearch.close();
                             closeConnection();
@@ -1477,9 +1509,9 @@ import java.util.Map;
                             }else{
                                 //sort ascendig or descending
                                 if (filter.isSortAscending()){
-                                    distance.sort((o1, o2) -> ((Double)o1.getKey()).compareTo((Double)o1.getKey()));
+                                    distance.sort((o1, o2) -> ((Double)o1.getKey()).compareTo((Double)o2.getKey()));
                                 }else{
-                                    distance.sort((o1, o2) -> -((Double)o1.getKey()).compareTo((Double)o1.getKey()));
+                                    distance.sort((o1, o2) -> -((Double)o1.getKey()).compareTo((Double)o2.getKey()));
 
                                 }
                                 //preserve sort and retrieve user display strings
