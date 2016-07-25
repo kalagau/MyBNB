@@ -52,7 +52,7 @@ public class BookingHandler extends BaseHandler {
     public String selectFromMyBookings(){
         System.out.println("Select a booking:");
         decider.setOptions(DBTalker.getMyBookings(userID, tm.getUserHandler().isHost()));
-        return getBookingID(decider.displayOptions());
+        return getListingIDOnBookingText(decider.displayOptions());
     }
 
     public void selectListingToBook(){
@@ -70,8 +70,11 @@ public class BookingHandler extends BaseHandler {
     }
 
     public static String getBookingID(String bookingText){
-        return "";
-//        return bookingText.split(":")[0];
+        return bookingText.split(":")[0];
+    }
+
+    public static String getListingIDOnBookingText(String bookingText){
+        return bookingText.split(":")[1];
     }
 
 
