@@ -26,11 +26,14 @@ public class BookingHandler extends BaseHandler {
         asker.add(new Info("endDate", "Ending Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_END_DATE));
         Rental rental = new Rental(asker.askQuestions());
 
-        if(DBTalker.createBooking(userID, listingID, rental).equals("error")) {
-            System.out.println("Selected dates unavailable");
-            bookListing(listingID);
-        } else
-            System.out.println("Listing was successfully booked!");
+        String result = DBTalker.createBooking(userID, listingID, rental);
+        if (result != null) {
+            if(result.equals("")) {
+                System.out.println("Selected dates unavailable");
+                bookListing(listingID);
+            } else
+                System.out.println("Listing was successfully booked!");
+        }
     }
 
     public void showBooking(){
