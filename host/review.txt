@@ -1,0 +1,20 @@
+1	\N	2	9	4	2	I loved the place it was clean, cheap and very spacious.The view was wonderful.
+2	2	\N	9	4	1	I loved the host, he was very kind and gave us alot of free perks
+3	2	\N	9	4	3	The renter was very good. He paid on time and left the place very clean.
+4	8	\N	14	3	1	The Host was alright. He just did what was required of him. He was lazy.
+5	\N	7	14	3	2	The location was ok. The area was pretty run down. The house was barely aaccptable and was sloppy.
+6	8	\N	14	3	3	The renter was alright. HE left a bit of a mess behind.
+7	5	\N	13	2	1	The host was not so great. He didnt always pickup the phone and was late when we reached.
+8	\N	6	13	2	2	The location was dirty, beds were not clean, and there wre bugs.
+9	5	\N	13	2	3	The renter was not very understanding. Got rude and impatient.
+10	4	\N	12	1	1	The host was downright terrible. He was rude and intimidating. HE tred to charge us more money.
+11	\N	5	12	1	2	This was the worse place I ever stayed in. It was dirty and in shambles and had a bug infestation. The neighbourhood was very sketchy.
+12	4	\N	12	1	3	The renter looked like a trouble maker, hosted a loud party and left the place trashed.
+13	1	\N	8	5	1	The host was awesome. He went wasy above what we were expecting.
+14	\N	1	8	5	2	The house was state of the art. everything was clean and new. It was the best place I have stayed in.
+15	1	\N	8	5	3	The renter was very nice and genrous. Left the place as it was found.
+16	2	\N	11	4	1	Hoster was good. He was polite and understanding.
+17	\N	4	11	4	2	The location was nice and the place was furnished well.
+18	2	\N	11	4	3	Good renter.
+19	1	\N	10	4	1	Good Hoster.
+20	\N	3	10	4	2	The place was clean and in a good location.

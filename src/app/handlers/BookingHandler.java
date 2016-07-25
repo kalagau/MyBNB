@@ -54,8 +54,12 @@ public class BookingHandler extends BaseHandler {
 
     public String selectFromMyBookings(){
         System.out.println("Select a booking:");
-        decider.setOptions(DBTalker.getMyBookings(userID, tm.getUserHandler().isHost()));
-        return getListingIDOnBookingText(decider.displayOptions());
+        ArrayList<String> bookings = DBTalker.getMyBookings(userID, tm.getUserHandler().isHost());
+        if(!bookings.isEmpty()) {
+            decider.setOptions(bookings);
+            return getListingIDOnBookingText(decider.displayOptions());
+        } else
+            return "";
     }
 
     public void selectListingToBook(){

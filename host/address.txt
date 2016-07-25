@@ -1,0 +1,30 @@
+1	m1a1a1	Canada	Toronto
+2	m2b2b2	Canada	Toronto
+3	m1a2n1	Canada	Toronto
+4	cnc3d1	Canada	Vancouver
+5	cnc5g3	Canada	Vancouver
+6	cnc7u8	Canada	Vancouver
+7	b1s2c4	Canada	Calgary
+8	b1s2h6	Canada	Calgary
+9	b4z1s2	Canada	Calgary
+10	b2b2b2	Canada	Montreal
+11	a1a1a1	Canada	Montreal
+12	b2b2b2	Canada	Montreal
+13	f1w2c5	USA	Boston
+14	f1w7y6	USA	Boston
+15	f4h2h6	USA	Boston
+16	f8u4r6	USA	Boston
+17	h1s2g5	USA	New York
+18	h1s4h6	USA	New York
+19	h1s4j6	USA	New York
+20	h2w5g6	USA	New York
+21	h9b6n6	USA	New York
+22	y7y8j9	USA	Seattle
+23	y7y9c4	USA	Seattle
+24	yhj6b6	USA	Seattle
+25	y2f7g5	USA	Seattle
+26	z1z1z1	Australia	Sydney
+27	z1z1f1	Australia	Sydney
+28	z1z1b1	Australia	Sydney
+29	z4w1t6	Australia	Sydney
+30	z4w1h7	Australia	Sydney

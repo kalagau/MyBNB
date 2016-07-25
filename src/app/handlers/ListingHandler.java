@@ -51,7 +51,9 @@ public class ListingHandler extends BaseHandler {
                 asker.add(new Info("useSuggested", "Would you like to use this price for this listing? (y/n)", Info.DataType.BOOLEAN));
                 if((Boolean) asker.askQuestions().get("useSuggested"))
                     listing.setMainPrice(BigDecimal.valueOf(suggestedPrice));
-            }
+            } else
+                System.out.println("Sorry, not enough information");
+
         }
 
         DBTalker.createListing(userID, listing);

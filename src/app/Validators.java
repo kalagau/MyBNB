@@ -28,6 +28,7 @@ public class Validators {
         Validation.put(ValidatorKeys.START_DATE, (d)-> Validators.isStartDate((Date)d));
         Validation.put(ValidatorKeys.END_DATE, (d)-> Validators.isEndDate((Date)d));
         Validation.put(ValidatorKeys.CC_NUMBER, (s)-> Validators.CCNumber((String) s));
+        Validation.put(ValidatorKeys.CC_EXPIRY, (s)-> Validators.CCExpiry((String) s));
         Validation.put(ValidatorKeys.CCV, (s)-> Validators.CCV((String) s));
         Validation.put(ValidatorKeys.LONGITUDE, (d)-> Validators.longitude((Double) d));
         Validation.put(ValidatorKeys.LATITUDE, (d)-> Validators.latitude((Double) d));
@@ -84,7 +85,7 @@ public class Validators {
         return cal.after(startDate);
     }
 
-    public static boolean isCCExpiry(String str){
+    public static boolean CCExpiry(String str){
         return str.matches("((0?[1-9])|(1[0-2]))/\\d{4}"); // mm/yyyy
     }
 
@@ -105,7 +106,7 @@ public class Validators {
     }
 
     public static boolean SIN(String str){
-        return allNumbers(str) && str.charAt(0) != '0' && str.length() <= 9;
+        return allNumbers(str) && str.charAt(0) != '0' && str.length() == 9 && str.charAt(0) != '0';
     }
 
     public static boolean notNegative(Double d){

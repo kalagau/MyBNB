@@ -69,6 +69,7 @@ public class UserHandler extends BaseHandler {
             isHost = !user.isRenter();
             userID = response;
             userName = user.getName();
+            tm.setUserID(userID);
             System.out.println("Welcome, " + userName);
         }
         tm.startSession();
