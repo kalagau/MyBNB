@@ -23,6 +23,8 @@ public class Validators {
         Validation.put(ValidatorKeys.POSTAL_CODE, (s)-> Validators.isPostalCode((String)s));
         Validation.put(ValidatorKeys.FUTURE_START_DATE, (d)-> Validators.isFutureStartDate((Date)d));
         Validation.put(ValidatorKeys.FUTURE_END_DATE, (d)-> Validators.isFutureEndDate((Date)d));
+        Validation.put(ValidatorKeys.START_DATE, (d)-> Validators.isStartDate((Date)d));
+        Validation.put(ValidatorKeys.END_DATE, (d)-> Validators.isEndDate((Date)d));
         Validation.put(ValidatorKeys.CC_EXPIRY, (s)-> Validators.isCCExpiry((String) s));
     }
 
