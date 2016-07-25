@@ -70,7 +70,7 @@ public class UserHandler extends BaseHandler {
             userID = response;
             userName = user.getName();
             tm.setUserID(userID);
-            System.out.println("Welcome, " + userName);
+            System.out.println("Welcome, " + userName + ", your ID is: " + userID);
         }
         tm.startSession();
     }

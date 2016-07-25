@@ -1,0 +1,10 @@
+load data infile '/Users/Daniel/school_code/MyBNB/host/address.txt' into table address;
+load data infile '/Users/Daniel/school_code/MyBNB/host/credit_card.txt' into table credit_card;
+load data infile '/Users/Daniel/school_code/MyBNB/host/location.txt' into table location;
+load data infile '/Users/Daniel/school_code/MyBNB/host/user.txt' into table user;
+load data infile '/Users/Daniel/school_code/MyBNB/host/host.txt' into table host;
+load data infile '/Users/Daniel/school_code/MyBNB/host/renter.txt' into table renter;
+load data infile '/Users/Daniel/school_code/MyBNB/host/listing.txt' into table listing;
+load data infile '/Users/Daniel/school_code/MyBNB/host/calendar_entry.txt' into table calendar_entry;
+load data infile '/Users/Daniel/school_code/MyBNB/host/rental.txt' into table rental;
+load data infile '/Users/Daniel/school_code/MyBNB/host/review.txt' into table review;

@@ -72,6 +72,7 @@ public class BookingHandler extends BaseHandler {
             decider.add("Book this listing", () -> bookListing(listingID));
             decider.add("Go back to results", this::selectListingToBook);
             decider.add("Go to app menu");
+            decider.displayOptions();
         } else
             Terminal.printNotFound("listings");
     }

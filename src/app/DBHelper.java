@@ -18,16 +18,13 @@ import java.util.Map;
 
 
 
-                /**
-                 * Created by Daniel on 2016-07-16.
-                 */
                 public class DBHelper {
                     private static final String dbClassName = "com.mysql.jdbc.Driver";
                     private static final String CONNECTION = "jdbc:mysql://127.0.0.1/mydb";
                     private static boolean active = false;
                     private static Connection conn;
                     //generates a list of dates between 2 dates
-                    //taken from stackoverflow ---
+                    //taken from stackoverflow --- http://l.facebook.com/l.php?u=http%3A%2F%2Fstackoverflow.com%2Fquestions%2F9295616%2Fhow-to-get-list-of-dates-between-two-dates-in-mysql-select-query&h=hAQELPMae
                     //
                     private static String dateSQL = "select * from " +
                             "(select adddate('1970-01-01',t4.i*10000 + t3.i*1000 + t2.i*100 + t1.i*10 + t0.i) selected_date from\n" +
@@ -201,11 +198,6 @@ import java.util.Map;
                                         stmt.setBoolean(3, true);
                                         int complete = stmt.executeUpdate();
                                         rsIns = stmt.getGeneratedKeys();
-                                        if (complete > 0 && rsIns.next()) {
-                                            userId = (rsIns.getInt(1));
-                                        } else {
-                                            userId = -1;
-                                        }
                                         rsIns.close();
                                         stmt.close();
                                     } else {
@@ -220,11 +212,6 @@ import java.util.Map;
                                     stmt.setBoolean(2, true);
                                     int complete = stmt.executeUpdate();
                                     rsIns = stmt.getGeneratedKeys();
-                                    if (complete > 0 && rsIns.next()) {
-                                        userId = (rsIns.getInt(1));
-                                    } else {
-                                        userId = -1;
-                                    }
                                     rsIns.close();
                                     stmt.close();
                                 }
@@ -1373,7 +1360,7 @@ import java.util.Map;
                                 //select listin with addr
                                 exactSearch = conn.prepareStatement("select listing_id from listing INNER JOIN " +
                                         "address on listing.address_id = address.address_id WHERE address.city=? " +
-                                        "and address.country=? and address.postal_code=?;");
+                                        "and address.country=? and address.pCode=?;");
                                 exactSearch.setString(1, filter.getCity());
                                 exactSearch.setString(2, filter.getCountry());
                                 exactSearch.setString(3, filter.getPostalCode());
@@ -1555,7 +1542,7 @@ import java.util.Map;
 
                     //calculate distance betwen 2 points
                     //haversine formula
-                    //taken from:
+                    //taken from: https://l.facebook.com/l.php?u=https%3A%2F%2Fbigdatanerd.wordpress.com%2F2011%2F11%2F03%2Fjava-implementation-of-haversine-formula-for-distance-calculation-between-two-points%2F&h=hAQELPMae
                     private static double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
                         double theta = lon1 - lon2;
                         double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));

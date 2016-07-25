@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -119,65 +120,73 @@ public class ListingHandler extends BaseHandler {
 
     public ArrayList<String> getFilteredListings(){
         ArrayList<String> filters = getFilters();
-        if(filters.contains("Distance from Location")){
-            asker.add(new Info("longitude", "Longitude:", Info.DataType.DOUBLE, ValidatorKeys.LONGITUDE));
-            asker.add(new Info("latitude", "Latitude:", Info.DataType.DOUBLE, ValidatorKeys.LATITUDE));
-            asker.add(new Info("maxDistance", "Max Distance (km):", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
-        }
-        if(filters.contains("Postal Code")){
-            asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, ValidatorKeys.POSTAL_CODE));
-        }
-        if(filters.contains("Price Range")){
-            asker.add(new Info("lowestPrice", "Min Price:", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
-            asker.add(new Info("highestPrice", "Max Price:", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
-        }
+        ListingFilter listingsFilter = null;
         if(filters.contains("Address")){
             asker.add(new Info("country", "Country:", Info.DataType.STRING));
             asker.add(new Info("city", "City:", Info.DataType.STRING));
-        }
-        if(filters.contains("Available Date Range")){
-            asker.add(new Info("firstDate", "First Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_START_DATE));
-            asker.add(new Info("lastDate", "Last Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_END_DATE));
-        }
-        if(filters.contains("Minimum Number of Bedrooms")){
-            asker.add(new Info("minNumberOfBedrooms", "Minimum number of bedrooms:", Info.DataType.INTEGER, ValidatorKeys.NUM_BEDROOMS));
+            asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, ValidatorKeys.POSTAL_CODE));
+            listingsFilter = new ListingFilter(asker.askQuestions());
+        } else if(!filters.contains("None")) {
+            if (filters.contains("Distance from Location")) {
+                asker.add(new Info("longitude", "Longitude:", Info.DataType.DOUBLE, ValidatorKeys.LONGITUDE));
+                asker.add(new Info("latitude", "Latitude:", Info.DataType.DOUBLE, ValidatorKeys.LATITUDE));
+                asker.add(new Info("maxDistance", "Max Distance (km):", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
+            }
+            if (filters.contains("Postal Code")) {
+                asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, ValidatorKeys.POSTAL_CODE));
+            }
+            if (filters.contains("Price Range")) {
+                asker.add(new Info("lowestPrice", "Min Price:", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
+                asker.add(new Info("highestPrice", "Max Price:", Info.DataType.DOUBLE, ValidatorKeys.NOT_NEGATIVE));
+            }
+
+            if (filters.contains("Available Date Range")) {
+                asker.add(new Info("firstDate", "First Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_START_DATE));
+                asker.add(new Info("lastDate", "Last Date (yyyy-mm-dd):", Info.DataType.DATE, ValidatorKeys.FUTURE_END_DATE));
+            }
+            if (filters.contains("Minimum Number of Bedrooms")) {
+                asker.add(new Info("minNumberOfBedrooms", "Minimum number of bedrooms:", Info.DataType.INTEGER, ValidatorKeys.NUM_BEDROOMS));
+            }
+
+            listingsFilter = new ListingFilter(asker.askQuestions());
+
+            if (filters.contains("Amenities")) {
+                System.out.println("Enter applicable amenities below, separated by commas");
+                decider.setOptions(DBTalker.getListingCharacteristics());
+                listingsFilter.setCharacteristics(decider.displayOptionsWithMultipleInput());
+            }
+
+            if (filters.contains("Type of Place")) {
+                decider.add("full house");
+                decider.add("room");
+                decider.add("apartment");
+                listingsFilter.setType(decider.displayOptions());
+            }
+
+            if (filters.contains("Distance from Location")) {
+                System.out.println("Sort by:");
+                decider.add("Price");
+                decider.add("Distance");
+                listingsFilter.setSortByPrice(decider.displayOptions().equals("Price"));
+                decider.add("Ascending");
+                decider.add("Descending");
+                listingsFilter.setSortAscending(decider.displayOptions().equals("Ascending"));
+            } else {
+                System.out.println("Order by price:");
+                decider.add("Ascending");
+                decider.add("Descending");
+                listingsFilter.setSortAscending(decider.displayOptions().equals("Ascending"));
+            }
         }
 
-        ListingFilter listingsFilter = new ListingFilter(asker.askQuestions());
-
-        if(filters.contains("Amenities")) {
-            System.out.println("Enter applicable amenities below, separated by commas");
-            decider.setOptions(DBTalker.getListingCharacteristics());
-            listingsFilter.setCharacteristics(decider.displayOptionsWithMultipleInput());
-        }
-
-        if(filters.contains("Type of Place")){
-            decider.add("full house");
-            decider.add("room");
-            decider.add("apartment");
-            listingsFilter.setType(decider.displayOptions());
-        }
-
-        if(filters.contains("Distance from Location")) {
-            System.out.println("Sort by:");
-            decider.add("Price");
-            decider.add("Distance");
-            listingsFilter.setSortByPrice(decider.displayOptions().equals("Price"));
-            decider.add("Ascending");
-            decider.add("Descending");
-            listingsFilter.setSortAscending(decider.displayOptions().equals("Ascending"));
-        } else {
-            System.out.println("Order by price:");
-            decider.add("Ascending");
-            decider.add("Descending");
-            listingsFilter.setSortAscending(decider.displayOptions().equals("Ascending"));
-        }
+        if(listingsFilter == null)
+            listingsFilter = new ListingFilter(new HashMap());
 
         return DBTalker.getListings(listingsFilter);
     }
 
     public ArrayList<String> getFilters(){
-        System.out.println("Select filters:");
+        System.out.println("Select filters: (you can select multiple separated by commas)");
         decider.add("Distance from Location");
         decider.add("Postal Code");
         decider.add("Price Range");
@@ -186,6 +195,7 @@ public class ListingHandler extends BaseHandler {
         decider.add("Minimum Number of Bedrooms");
         decider.add("Type of Place");
         decider.add("Amenities");
+        decider.add("None");
         return decider.displayOptionsWithMultipleInput();
     }
 
