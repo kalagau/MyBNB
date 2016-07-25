@@ -1,4 +1,4 @@
-//ADDR
+#ADDR
 
 create table address (
 address_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -34,7 +34,7 @@ delimiter ;
 
 
 
-//CreditCard
+#CreditCard
 
 create table credit_card (
 card_number VARCHAR(19) NOT NULL PRIMARY KEY,
@@ -69,7 +69,7 @@ END
 delimiter ;
 
 
-//Location
+#Location
 
 create table location (
 location_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -107,7 +107,7 @@ delimiter ;
 
 
 
-//USer
+#USer
 
 create table user (
 user_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -145,7 +145,7 @@ END
 |
 delimiter ;
 
-//HOST
+#HOST
 
 
 create table host (
@@ -154,7 +154,7 @@ FOREIGN KEY (user_id) REFERENCES user(user_id),
 PRIMARY KEY(user_id),
 isActive BOOLEAN NOT NULL) ENGINE INNODB;
 
-//renter
+#renter
 
 
 create table  renter(
@@ -165,7 +165,7 @@ FOREIGN KEY (card_number) REFERENCES credit_card(card_number),
 PRIMARY KEY(user_id),
 isActive BOOLEAN NOT NULL) ENGINE INNODB;
 
-//Listing
+#Listing
 
 create table listing (listing_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 isActive BOOLEAN NOT NULL DEFAULT '1',
@@ -238,7 +238,7 @@ delimiter ;
 	delimiter ;
 
 
-//Calendar
+#Calendar
 
 create table calendar_entry (
 listing_id int(50) NOT NULL,
@@ -274,8 +274,8 @@ END
 |
 delimiter ;
 
-//RENTAL
-//ADD constraint for canccledd on Here 
+#RENTAL
+#ADD constraint for canccledd on Here
 
 create table rental (
 rental_id int(50) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -317,7 +317,7 @@ END
 delimiter ;
 
 
-//Review
+#Review
 
 
 

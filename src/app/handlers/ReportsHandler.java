@@ -56,7 +56,7 @@ public class ReportsHandler extends BaseHandler {
 
         DBReportsTalker.numberOfListings(type);
     }
-    
+
     public void hostsByNumberOfListings() {
         decider.add("Country");
         decider.add("City");
