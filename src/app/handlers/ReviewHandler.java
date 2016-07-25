@@ -61,7 +61,7 @@ public class ReviewHandler extends BaseHandler {
         decider.add("3 stars");
         decider.add("4 stars");
         decider.add("5 stars");
-        int rating = Integer.parseInt(decider.displayOptions());
+        int rating = Integer.parseInt(decider.displayOptions().split(" ")[0]);
 
         Review review = new Review(description, revieweeID, rating, type);
         DBTalker.createReview(userID, review);

@@ -85,6 +85,10 @@ public class Listing {
         this.type = type;
     }
 
+    public void setMainPrice(BigDecimal mainPrice) {
+        this.mainPrice = mainPrice;
+    }
+
     public void setCharacteristics(ArrayList<String> characteristics) {
         this.characteristics = characteristics;
     }

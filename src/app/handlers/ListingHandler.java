@@ -7,6 +7,7 @@ import app.modules.Decider;
 import app.objects.*;
 import app.Terminal;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -27,8 +28,8 @@ public class ListingHandler extends BaseHandler {
         asker.add(new Info("postalCode", "Postal Code:", Info.DataType.STRING, Validators.ValidatorKeys.POSTAL_CODE));
         asker.add(new Info("longitude", "Longitude:", Info.DataType.DOUBLE));
         asker.add(new Info("latitude", "Latitude:", Info.DataType.DOUBLE));
-        asker.add(new Info("mainPrice", "Price:", Info.DataType.DOUBLE));
         asker.add(new Info("numberOfBedrooms", "Number of Bedrooms:", Info.DataType.INTEGER));
+        asker.add(new Info("mainPrice", "Price:", Info.DataType.DOUBLE));
         Listing listing = new Listing(asker.askQuestions());
 
         decider.add("full house");
@@ -39,6 +40,18 @@ public class ListingHandler extends BaseHandler {
         System.out.println("Enter applicable amenities below, separated by commas");
         decider.setOptions(DBTalker.getListingCharacteristics());
         listing.setCharacteristics(decider.displayOptionsWithMultipleInput());
+
+        asker.add(new Info("useToolkit", "Would you like to use Host Toolkit to recomend a price for this listing? (y/n)", Info.DataType.BOOLEAN));
+        if((Boolean) asker.askQuestions().get("useToolkit")){
+            double suggestedPrice = DBTalker.getRecomendedPrice(listing.getType(), listing.getCharacteristics().size());
+            if(suggestedPrice > 0){
+                System.out.println("Suggest price was " + String.valueOf(suggestedPrice));
+                asker.add(new Info("useSuggested", "Would you like to use this price for this listing? (y/n)", Info.DataType.BOOLEAN));
+                if((Boolean) asker.askQuestions().get("useSuggested"))
+                    listing.setMainPrice(BigDecimal.valueOf(suggestedPrice));
+            }
+        }
+
         DBTalker.createListing(userID, listing);
     }
 

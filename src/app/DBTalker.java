@@ -165,6 +165,14 @@ public class DBTalker {
         }
     }
 
+    public static double getRecomendedPrice(String type, int numberOfAmenities){
+        try { return DBHelper.getRecomendedPrice(type, numberOfAmenities); }
+        catch (Exception e) {
+            errorOccurred(e);
+            return -1.;
+        }
+    }
+
     private static void errorOccurred(Exception e){
         System.out.println("An error has occurred");
         e.printStackTrace();
