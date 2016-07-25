@@ -7,7 +7,7 @@ import opennlp.tools.cmdline.parser.ParserTool;
 
 public class NounPhraseParser {
 
-    private static  Map<String,Integer> nounPhrases = new HashMap<String,Integer>();;
+    private static  Map<String,Integer> nounPhrases = new HashMap<String,Integer>();
 
     private static void getNounPhrases(Parse p) {
         if (p.getType().equals("NP")) {
@@ -24,6 +24,7 @@ public class NounPhraseParser {
     }
     public static ArrayList<String> parseNouns(ArrayList<String> sentences) throws Exception{
         ArrayList<String> list= new ArrayList<String>();
+        nounPhrases = new HashMap<String,Integer>();
 
         InputStream is = new FileInputStream("en-parser-chunking.bin");
 
@@ -41,7 +42,7 @@ public class NounPhraseParser {
         is.close();
         // only keep NP's where they occur more than once
         for (String key : nounPhrases.keySet()) {
-            if (nounPhrases.get(key) > 1)
+            if (nounPhrases.get(key) > 0)
                 list.add(key);
         }
         return list;
