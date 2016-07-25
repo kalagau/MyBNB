@@ -413,7 +413,7 @@ import java.util.Map;
                         int locId = -1;
                         int listingId = -1;
                         //SQL statement which has $%$% to be replaced by ammnenities the user selects
-                        String sql = "INSERT INTO listing (location_id, address_id, type, price, num_bedrooms #%#%# )  VALUES (?,?,?,?,?";
+                        String sql = "INSERT INTO listing (user_id,location_id, address_id, type, price, num_bedrooms #%#%# )  VALUES (?,?,?,?,?,?";
                         String colNames ="";
                         int cCount = 0;
                         // Modify the uery to accomodate the number of ammenities the user selected
@@ -423,7 +423,7 @@ import java.util.Map;
                             cCount++;
                         }
                         //add in theaddtional colNames
-                        sql.replace("#%#%#",colNames);
+                        sql = sql.replace("#%#%#",colNames);
                         sql+= ");";
 
 
@@ -461,6 +461,7 @@ import java.util.Map;
                             if (addrId != -1 && locId != -1 ){
                                 // if we sucess fully created the two entires prepare and execute the query
                                 //to insert the listing
+                                System.out.print(sql);
                                 createListing = conn.prepareStatement(sql,PreparedStatement.RETURN_GENERATED_KEYS);
                                 createListing.setInt(1,Integer.parseInt(userID));
                                 createListing.setInt(3,addrId);
@@ -612,12 +613,16 @@ import java.util.Map;
                             listings.setInt(1,Integer.parseInt(userID));
                             listings.setBoolean(2,true);
                             rs = listings.executeQuery();
-                            while (rs.next())
-                                list.add(String.format("%d:%s:%s:%s:%s",rs.getInt("listing_id"),
-                                        rs.getString("type"),rs.getString("country"),rs.getString("city"),rs.getString("pCode")));
+                            while (rs.next()) {
 
+                                System.out.println(String.format("%d:%s:%s:%s:%s",rs.getInt("listing_id"),
+                                        rs.getString("type"),rs.getString("country"),rs.getString("city"),rs.getString("pCode")));
+                                list.add(String.format("%d:%s:%s:%s:%s", rs.getInt("listing_id"),
+                                        rs.getString("type"), rs.getString("country"), rs.getString("city"), rs.getString("pCode")));
+                            }
 
                             rs.close();
+                            System.out.println("DONE");
                             listings.close();
                             closeConnection();
 
@@ -1150,7 +1155,7 @@ import java.util.Map;
                         // change price in calendar
                         String updCal= "UPDATE calendar_entry SET  calendar_entry.price =? where calendar_entry.date >= ? AND calendar_entry.date<=? and listing_id=? ;";
                         //insert dates not in calendar
-                        String insCal= "INSERT into calendar_entry (listing_id isAvailable,price,date) select ,? ?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
+                        String insCal= "INSERT into calendar_entry (listing_id, isAvailable,price,date) select ? ,?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
                         try {
 
                             createConnection();
@@ -1170,7 +1175,8 @@ import java.util.Map;
                                 updateCalendar.setInt(4,Integer.parseInt(listingID));
                                 updateCalendar.setBigDecimal(1,calendarEntryRange.getPrice());
                                 //update
-                                if (updateCalendar.executeUpdate()>0){
+                                int a =updateCalendar.executeUpdate();
+                                    System.out.print("OHHHHH");
                                     //insert
                                     insertCalendar = conn.prepareStatement(insCal);
                                     insertCalendar.setInt(1,Integer.parseInt(listingID));
@@ -1184,13 +1190,15 @@ import java.util.Map;
                                     if(insertCalendar.executeUpdate()> 0){
                                         retval ="success";
                                     }
+                                    insertCalendar.close();
 
-                                }
+
+                                updateCalendar.close();
 
                             }
 
-                            insertCalendar.close();
-                            updateCalendar.close();
+
+
                             rs.close();
                             conflicts.close();
 
@@ -1236,7 +1244,7 @@ import java.util.Map;
                         // update cal values
                         String updCal= "UPDATE calendar_entry SET  calendar_entry.isAvailable =? where calendar_entry.date >= ? AND calendar_entry.date<=? and listing_id=?;";
                         // insert missing dates
-                        String insCal= "INSERT into calendar_entry (listing_id isAvailable,price,date) select ,? ?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
+                        String insCal= "INSERT into calendar_entry (listing_id, isAvailable,price,date) select ?, ?,?, t.selected_date from (" +dateSQL + ")t where t.selected_date NOT IN (SELECT date as selected_date FROM calendar_entry where calendar_entry.date >= ? AND calendar_entry.date<= ? AND calendar_entry.listing_id=?); ";
 
 
                         try {
@@ -1254,13 +1262,15 @@ import java.util.Map;
                                 listingPrice.setInt(1,Integer.parseInt(listingID));
                                 rsPrice = listingPrice.executeQuery();
                                 if (rsPrice.next()){
+                                    System.out.print("INSEaaRT");
                                     BigDecimal price = rsPrice.getBigDecimal(1);
                                     updateCalendar = conn.prepareStatement(updCal);
                                     updateCalendar.setDate(2,calendarEntryRange.getStartDate());
                                     updateCalendar.setDate(3,calendarEntryRange.getEndDate());
                                     updateCalendar.setInt(4,Integer.parseInt(listingID));
                                     updateCalendar.setBoolean(1,calendarEntryRange.isAvailable());
-                                    if (updateCalendar.executeUpdate()>0){
+                                    int a =updateCalendar.executeUpdate();
+                                        System.out.print("INSERT");
                                         insertCalendar = conn.prepareStatement(insCal);
                                         insertCalendar.setInt(1,Integer.parseInt(listingID));
                                         insertCalendar.setBoolean(2,calendarEntryRange.isAvailable());
@@ -1271,18 +1281,24 @@ import java.util.Map;
                                         insertCalendar.setDate(7,calendarEntryRange.getEndDate());
                                         insertCalendar.setInt(8,Integer.parseInt(listingID));
                                         if(insertCalendar.executeUpdate()> 0){
+                                            System.out.print("INSERTVALID");
+
                                             retval = "success";
                                         }
-                                    }
+                                        insertCalendar.close();
+
+                                    System.out.print("THORUGH STAGE");
+                                    updateCalendar.close();
+
 
                                 }
+                                rsPrice.close();
+                                listingPrice.close();
 
                             }
 
-                            insertCalendar.close();
-                            updateCalendar.close();
-                            rsPrice.close();
-                            listingPrice.close();
+
+
                             rs.close();
                             conflicts.close();
 
@@ -1796,7 +1812,7 @@ import java.util.Map;
                                 //select method of storing data
                                 //dependant on query used
 
-                                data = String.format("%s:%d:%s:%d", rs.getString(1) ,rs.getInt(2),rs.getString(3) ,rs.getInt(4));
+                                data = String.format("%s:%s:%d:%d", rs.getString(1) ,rs.getString(2),rs.getInt(3) ,rs.getInt(4));
                                 list.add(data);
 
                             }
@@ -1948,8 +1964,8 @@ import java.util.Map;
                         PreparedStatement text = null;
                         ResultSet rs = null;
                         ResultSet rsText = null;
-                        String sql = "select listing_id from listing where isActive=1)";
-                        String textSQL = "SELECT description from listing INNER JOIN review on listing.listing_id=review.listing_id where review.listng_id=?; ";
+                        String sql = "select listing_id from listing where isActive=1";
+                        String textSQL = "SELECT description from listing INNER JOIN review on listing.listing_id=review.listing_id where review.listing_id=?; ";
                         int result = -1;
                         try {
                             createConnection();
@@ -1962,7 +1978,7 @@ import java.util.Map;
                             while (rs.next()) {
                                 result = rs.getInt(1);
                                 text.setInt(1, result);
-                                rsText = listings.executeQuery();
+                                rsText = text.executeQuery();
                                 while (rsText.next()) {
                                     String description = rsText.getString(1);
                                     for (String s: description.split(". ")) {
